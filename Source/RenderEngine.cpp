@@ -7,13 +7,19 @@
 //
 
 #include "RenderEngine.h"
+#include "ResourceLoader.h"
 #include <vector>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <tuple>
+
 namespace JustRay
 {
 struct PerObjectBuffer
 {
     Matrix4x4 modelToWorld;
-    Float4 material;
+    Float4 material[2];
 };
 struct PerFrameBuffer
 {
@@ -31,6 +37,7 @@ enum ConstantBufferType
     PER_OBJECT_BUFFER,
     NUM_OF_BUFFER
 };
+static std::string BUFFER_NAMES[] = {"PerEngineBuffer", "PerFrameBuffer", "PerObjectBuffer"};
 void RenderEngine::Startup(int xResolution, int yResolution)
 {
     xResolution_ = xResolution;
@@ -54,34 +61,41 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindSampler(0, repeatSamplerID_);
+    glBindSampler(1, repeatSamplerID_);
     glBindSampler(3, repeatSamplerID_);
     glBindSampler(4, repeatSamplerID_);
     glBindSampler(5, repeatSamplerID_);
 
+    SetupShader();
     SetupConstantBuffers();
     SetupPreIntegratedData();
 //    SetupEnvironment("uffizi");
-
-//    stationaryEntityShader_.Startup(ResourceManager::ReadFileToString("./Shaders/Stationary.vert.glsl"), ResourceManager::ReadFileToString("./Shaders/PBR.frag.glsl"));
-//    animatingEntityShader_.Startup(ResourceManager::ReadFileToString("./Shaders/PBR.vert.glsl"), ResourceManager::ReadFileToString("./Shaders/PBR.frag.glsl"));
-//    skyBoxShader_.Startup(ResourceManager::ReadFileToString("./Shaders/SkyBox.vert.glsl"), ResourceManager::ReadFileToString("./Shaders/SkyBox.frag.glsl"));
 }
-void RenderEngine::Render(const VertexBuffer& vertexBuffer, const std::vector<std::tuple<int, int, int>>& offsetList, const std::vector<std::shared_ptr<Material>>& materialList)
+void RenderEngine::Render(const ModelGroup& modelGroup)
 {
-    glBindVertexArray(vertexBuffer.indexBufferID_);
-    for (const auto& offset : offsetList) {
-        int indexOffset = std::get<0>(offset);
-        int numOfIndex = std::get<1>(offset);
-        int materialIndex = std::get<2>(offset);
-        auto& material = materialList[materialIndex];
+    glUseProgram(pbrShaderForStationaryEntity_);
+    glBindVertexArray(modelGroup.vertexArrayID_);
+    for (const auto& model : modelGroup.models_) {
+        int indexOffset = std::get<0>(model);
+        int numOfIndex = std::get<1>(model);
+//        int materialIndex = std::get<2>(offset);
+        auto& material = std::get<2>(model);
         material->Use();
-        glDrawElements(GL_TRIANGLES, numOfIndex, vertexBuffer.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+        glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
     }
 }
 
 void RenderEngine::SetupShader()
 {
+    auto vertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Stationary.vert.glsl"), GL_VERTEX_SHADER);
+    auto fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/test.frag.glsl"), GL_FRAGMENT_SHADER);
+    pbrShaderForStationaryEntity_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
+    glDeleteShader(vertexShaderID);
+    glDeleteShader(fragmentShaderID);
     
+    glUseProgram(pbrShaderForStationaryEntity_);
+    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "basecolorAndRoughnessMap"), 3);
 }
 void RenderEngine::SetupConstantBuffers()
 {
@@ -89,16 +103,24 @@ void RenderEngine::SetupConstantBuffers()
     bufferList_.resize(NUM_OF_BUFFER);
     glGenBuffers(static_cast<GLsizei>(bufferList_.size()), bufferList_.data());
     PerEngineBuffer staticConstantBuffer;
-    staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 1.0f, 100.0f);
+    staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 0.001f, 100.0f);
+    
+    PerFrameBuffer perFrameBuffer;
+    perFrameBuffer.cameraPosition = Float4(0.0);
+    perFrameBuffer.worldToView = glm::lookAtRH(Float3(0,-10,0), Float3(0,1,0), Float3(0,0,1));
+    PerObjectBuffer perObjectBuffer;
+    perObjectBuffer.modelToWorld = Matrix4x4(1.0);
     
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_ENGINE_BUFFER]);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(PerEngineBuffer), &staticConstantBuffer, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerFrameBuffer), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerFrameBuffer), &perFrameBuffer, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectBuffer), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectBuffer), &perObjectBuffer, GL_DYNAMIC_DRAW);
     for (int i = 0; i < bufferList_.size(); i++) {
         glBindBufferBase(GL_UNIFORM_BUFFER, i, bufferList_[i]);
+        unsigned int blockIndex = glGetUniformBlockIndex(pbrShaderForStationaryEntity_, BUFFER_NAMES[i].c_str());
+        glUniformBlockBinding(pbrShaderForStationaryEntity_, blockIndex, i);
     }
 }
 void RenderEngine::SetupPreIntegratedData()

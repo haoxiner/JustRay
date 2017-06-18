@@ -15,6 +15,7 @@ public:
     ~Material();
     void Use();
 private:
+    void LoadTexture(GLenum internalFormat, GLenum format, GLenum type, unsigned int width, unsigned int height, void* data);
     std::vector<GLuint> textureIDList_;
 };
 }

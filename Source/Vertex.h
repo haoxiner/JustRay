@@ -16,7 +16,10 @@ struct Vertex
 {
     Float3 position;
     Int_2_10_10_10 normal;
-    Float2 texcoord;
+    Int_2_10_10_10 tangent;
+    Int_2_10_10_10 bitangent;
+    unsigned short tx;
+    unsigned short ty;
     bool operator<(const Vertex& rhs) const;
 };
 struct VertexAttributeDescription

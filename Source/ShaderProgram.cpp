@@ -12,8 +12,6 @@ GLuint ShaderProgram::CompileShader(GLuint vertexShaderID, GLuint fragmentShader
     glLinkProgram(programID);
     glDetachShader(programID, vertexShaderID);
     glDetachShader(programID, fragmentShaderID);
-    glDeleteShader(vertexShaderID);
-    glDeleteShader(fragmentShaderID);
     GLint success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (success != GL_TRUE) {

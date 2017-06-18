@@ -24,8 +24,10 @@ int main(int argc, char *argv[])
     
     JustRay::ModelViewer* modelViewer = new JustRay::ModelViewer;
     JustRay::RenderEngine renderEngine;
+    renderEngine.Startup(display.GetXResolution(), display.GetYResolution());
     JustRay::Application* app = modelViewer;
     app->Startup();
+    std::cerr << "START" << std::endl;
     auto input = display.GetInput();
     JustRay::PerformanceTimer performanceTimer;
     performanceTimer.Reset();
@@ -34,7 +36,7 @@ int main(int argc, char *argv[])
         performanceTimer.Tick();
         display.UpdateEvent();
         // Rendering
-        glClearColor(1,1,1,1);
+        glClearColor(0.1,.1,.1,1);
         glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_DEPTH_BUFFER_BIT);
         app->Update(performanceTimer.GetDeltaTime(), *input, renderEngine);

@@ -7,7 +7,7 @@
 //
 #pragma once
 #include "ShaderProgram.h"
-#include "VertexBuffer.h"
+#include "ModelGroup.h"
 #include "Material.h"
 #include "MathUtil.h"
 #include "Platform.h"
@@ -20,7 +20,7 @@ class RenderEngine
 {
 public:
     void Startup(int xResolution, int yResolution);
-    void Render(const VertexBuffer& vertexBuffer, const std::vector<std::tuple<int, int, int>>& offsetList, const std::vector<std::shared_ptr<Material>>& materialList);
+    void Render(const ModelGroup& modelGroup);
 private:
     void SetupShader();
     void SetupConstantBuffers();

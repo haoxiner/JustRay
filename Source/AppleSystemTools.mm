@@ -13,7 +13,8 @@ namespace JustRay
 {
 std::string GetFilePath(const std::string& fileID)
 {
-    NSString *realPath = [[NSBundle mainBundle] pathForResource:[NSString stringWithUTF8String:fileID.c_str()] ofType:nil];
+    NSString* path = [NSString stringWithUTF8String:fileID.c_str()];
+    NSString* realPath = [[NSBundle mainBundle] pathForResource:path ofType:nil];
     return std::string([realPath UTF8String]);
 }
 }

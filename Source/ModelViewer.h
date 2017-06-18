@@ -8,7 +8,7 @@
 
 #pragma once
 #include "Application.h"
-#include "VertexBuffer.h"
+#include "ModelGroup.h"
 #include <memory>
 #include <vector>
 #include <utility>
@@ -21,8 +21,7 @@ public:
     void Shutdown() override;
     void Update(float deltaTime, const Input& input, RenderEngine& renderEngine) override;
 private:
-    std::unique_ptr<VertexBuffer> vertexBuffer_;
-    std::vector<std::pair<int,int>> models_;
+    std::unique_ptr<ModelGroup> testModel_;
 };
 }
 
