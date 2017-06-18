@@ -9,6 +9,12 @@
 /* Begin PBXBuildFile section */
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
+		223EA8AD1EF612840077DB54 /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = 223EA8AC1EF612840077DB54 /* Shader */; };
+		223EA8AF1EF61BA80077DB54 /* AppleSystemTools.mm in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8AE1EF61BA80077DB54 /* AppleSystemTools.mm */; };
+		223EA8B31EF6225C0077DB54 /* PerformanceTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8B11EF6225C0077DB54 /* PerformanceTimer.cpp */; };
+		223EA8B71EF627EF0077DB54 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8B51EF627EF0077DB54 /* Application.cpp */; };
+		223EA8BA1EF62BE20077DB54 /* ModelViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8B81EF62BE20077DB54 /* ModelViewer.cpp */; };
+		223EA8BE1EF643D70077DB54 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8BC1EF643D70077DB54 /* Material.cpp */; };
 		22529AAA1EF5818600FDC476 /* Display.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529A971EF5818600FDC476 /* Display.cpp */; };
 		22529AAB1EF5818600FDC476 /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529A991EF5818600FDC476 /* Input.cpp */; };
 		22529AAC1EF5818600FDC476 /* Json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529A9B1EF5818600FDC476 /* Json.cpp */; };
@@ -58,6 +64,17 @@
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* JustRay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JustRay.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		223EA8AC1EF612840077DB54 /* Shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shader; path = Resource/Shader; sourceTree = "<group>"; };
+		223EA8AE1EF61BA80077DB54 /* AppleSystemTools.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppleSystemTools.mm; path = Source/AppleSystemTools.mm; sourceTree = "<group>"; };
+		223EA8B01EF61C0E0077DB54 /* AppleSystemTools.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppleSystemTools.h; path = Source/AppleSystemTools.h; sourceTree = "<group>"; };
+		223EA8B11EF6225C0077DB54 /* PerformanceTimer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PerformanceTimer.cpp; path = Source/PerformanceTimer.cpp; sourceTree = "<group>"; };
+		223EA8B21EF6225C0077DB54 /* PerformanceTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PerformanceTimer.h; path = Source/PerformanceTimer.h; sourceTree = "<group>"; };
+		223EA8B51EF627EF0077DB54 /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Application.cpp; path = Source/Application.cpp; sourceTree = "<group>"; };
+		223EA8B61EF627EF0077DB54 /* Application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Application.h; path = Source/Application.h; sourceTree = "<group>"; };
+		223EA8B81EF62BE20077DB54 /* ModelViewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelViewer.cpp; path = Source/ModelViewer.cpp; sourceTree = "<group>"; };
+		223EA8B91EF62BE20077DB54 /* ModelViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelViewer.h; path = Source/ModelViewer.h; sourceTree = "<group>"; };
+		223EA8BC1EF643D70077DB54 /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Material.cpp; path = Source/Material.cpp; sourceTree = "<group>"; };
+		223EA8BD1EF643D70077DB54 /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Material.h; path = Source/Material.h; sourceTree = "<group>"; };
 		22529A971EF5818600FDC476 /* Display.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Display.cpp; path = Source/Display.cpp; sourceTree = "<group>"; };
 		22529A981EF5818600FDC476 /* Display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Display.h; path = Source/Display.h; sourceTree = "<group>"; };
 		22529A991EF5818600FDC476 /* Input.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Input.cpp; path = Source/Input.cpp; sourceTree = "<group>"; };
@@ -127,17 +144,38 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		19C28FACFE9D520D11CA2CBB /* Products */ = {
+		19C28FACFE9D520D11CA2CBB /* Product */ = {
 			isa = PBXGroup;
 			children = (
 				1D6058910D05DD3D006BFB54 /* JustRay.app */,
 			);
-			name = Products;
+			name = Product;
+			sourceTree = "<group>";
+		};
+		223EA8A81EF6119A0077DB54 /* Shader */ = {
+			isa = PBXGroup;
+			children = (
+				223EA8AC1EF612840077DB54 /* Shader */,
+			);
+			name = Shader;
+			sourceTree = "<group>";
+		};
+		223EA8B41EF627A80077DB54 /* Game */ = {
+			isa = PBXGroup;
+			children = (
+				223EA8B51EF627EF0077DB54 /* Application.cpp */,
+				223EA8B61EF627EF0077DB54 /* Application.h */,
+				223EA8B81EF62BE20077DB54 /* ModelViewer.cpp */,
+				223EA8B91EF62BE20077DB54 /* ModelViewer.h */,
+			);
+			name = Game;
 			sourceTree = "<group>";
 		};
 		226433C41EF55AF00076EBC0 /* Platform */ = {
 			isa = PBXGroup;
 			children = (
+				223EA8B11EF6225C0077DB54 /* PerformanceTimer.cpp */,
+				223EA8B21EF6225C0077DB54 /* PerformanceTimer.h */,
 				22529A991EF5818600FDC476 /* Input.cpp */,
 				22529A9A1EF5818600FDC476 /* Input.h */,
 				22529A971EF5818600FDC476 /* Display.cpp */,
@@ -168,8 +206,10 @@
 		22C7C74A1EF524C1009DA6B2 /* RenderEngine */ = {
 			isa = PBXGroup;
 			children = (
-				22529A9D1EF5818600FDC476 /* main.cpp */,
+				223EA8BC1EF643D70077DB54 /* Material.cpp */,
+				223EA8BD1EF643D70077DB54 /* Material.h */,
 				22529AA01EF5818600FDC476 /* Mesh.h */,
+				22529A9F1EF5818600FDC476 /* Mesh.cpp */,
 				22529AA21EF5818600FDC476 /* RenderEngine.cpp */,
 				22529AA31EF5818600FDC476 /* RenderEngine.h */,
 				22529AA41EF5818600FDC476 /* ShaderProgram.cpp */,
@@ -189,6 +229,8 @@
 				22529A9B1EF5818600FDC476 /* Json.cpp */,
 				22529A9C1EF5818600FDC476 /* Json.h */,
 				22529A9E1EF5818600FDC476 /* MathUtil.h */,
+				223EA8AE1EF61BA80077DB54 /* AppleSystemTools.mm */,
+				223EA8B01EF61C0E0077DB54 /* AppleSystemTools.h */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -197,37 +239,39 @@
 			isa = PBXGroup;
 			children = (
 				945C4F52195AF17F00DBBF61 /* Default-568h@2x.png */,
-				29B97315FDCFA39411CA2CEA /* Sources */,
-				29B97317FDCFA39411CA2CEA /* Resources */,
-				29B97323FDCFA39411CA2CEA /* Frameworks */,
-				19C28FACFE9D520D11CA2CBB /* Products */,
+				29B97315FDCFA39411CA2CEA /* Source */,
+				29B97317FDCFA39411CA2CEA /* Resource */,
+				29B97323FDCFA39411CA2CEA /* Framework */,
+				19C28FACFE9D520D11CA2CBB /* Product */,
 			);
 			name = CustomTemplate;
 			sourceTree = "<group>";
 		};
-		29B97315FDCFA39411CA2CEA /* Sources */ = {
+		29B97315FDCFA39411CA2CEA /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				22529A9D1EF5818600FDC476 /* main.cpp */,
+				223EA8B41EF627A80077DB54 /* Game */,
 				22C7C7531EF533B0009DA6B2 /* Util */,
 				22C7C74A1EF524C1009DA6B2 /* RenderEngine */,
 				22C7C7361EF4E1D1009DA6B2 /* imgui */,
 				944A65681957463F0094A81E /* SDL.xcodeproj */,
-				22529A9F1EF5818600FDC476 /* Mesh.cpp */,
 			);
-			name = Sources;
+			name = Source;
 			sourceTree = "<group>";
 		};
-		29B97317FDCFA39411CA2CEA /* Resources */ = {
+		29B97317FDCFA39411CA2CEA /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				223EA8A81EF6119A0077DB54 /* Shader */,
 				FD77A07E0E26BDA900F39101 /* Default.png */,
 				FD77A07C0E26BD8C00F39101 /* Icon.png */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 			);
-			name = Resources;
+			name = Resource;
 			sourceTree = "<group>";
 		};
-		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+		29B97323FDCFA39411CA2CEA /* Framework */ = {
 			isa = PBXGroup;
 			children = (
 				22C7C7481EF52030009DA6B2 /* libz.tbd */,
@@ -242,7 +286,7 @@
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
 			);
-			name = Frameworks;
+			name = Framework;
 			sourceTree = "<group>";
 		};
 		944A65691957463F0094A81E /* Products */ = {
@@ -335,6 +379,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FD77A07D0E26BD8C00F39101 /* Icon.png in Resources */,
+				223EA8AD1EF612840077DB54 /* Shader in Resources */,
 				FD77A07F0E26BDA900F39101 /* Default.png in Resources */,
 				945C4F53195AF17F00DBBF61 /* Default-568h@2x.png in Resources */,
 			);
@@ -348,9 +393,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				22529AB11EF5818600FDC476 /* Vertex.cpp in Sources */,
+				223EA8AF1EF61BA80077DB54 /* AppleSystemTools.mm in Sources */,
+				223EA8BA1EF62BE20077DB54 /* ModelViewer.cpp in Sources */,
 				22529AAE1EF5818600FDC476 /* Mesh.cpp in Sources */,
 				22529AB01EF5818600FDC476 /* ShaderProgram.cpp in Sources */,
+				223EA8B71EF627EF0077DB54 /* Application.cpp in Sources */,
+				223EA8B31EF6225C0077DB54 /* PerformanceTimer.cpp in Sources */,
 				22C7C7411EF4E1E4009DA6B2 /* imgui_draw.cpp in Sources */,
+				223EA8BE1EF643D70077DB54 /* Material.cpp in Sources */,
 				22C7C7421EF4E1E4009DA6B2 /* imgui.cpp in Sources */,
 				22C7C7401EF4E1E4009DA6B2 /* imgui_demo.cpp in Sources */,
 				22529AAF1EF5818600FDC476 /* RenderEngine.cpp in Sources */,

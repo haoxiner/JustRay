@@ -7,8 +7,8 @@ class Display {
 public:
     bool Startup();
     void UpdateEvent();
-    void GUIBegin();
-    void GUIEnd();
+    void SwapBackBuffer();
+    void RenderGUI();
     void Shutdown();
     bool Running();
     const Input* GetInput() const;

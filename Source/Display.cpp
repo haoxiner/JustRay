@@ -52,8 +52,8 @@ bool Display::Startup()
     return true;
 }
 
-void Display::UpdateEvent() {
-    SDL_GL_SwapWindow(window_);
+void Display::UpdateEvent()
+{
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
         ImGui_ImplSdlGL3_ProcessEvent(&event);
@@ -62,14 +62,15 @@ void Display::UpdateEvent() {
         }
         input_.UpdateKeyboard(SDL_GetKeyboardState(nullptr));
     }
-}
-
-void Display::GUIBegin()
-{
     ImGui_ImplSdlGL3_NewFrame(window_);
 }
 
-void Display::GUIEnd()
+void Display::SwapBackBuffer()
+{
+    SDL_GL_SwapWindow(window_);
+}
+
+void Display::RenderGUI()
 {
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     ImGui::Render();

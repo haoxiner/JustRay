@@ -66,6 +66,19 @@ void RenderEngine::Startup(int xResolution, int yResolution)
 //    animatingEntityShader_.Startup(ResourceManager::ReadFileToString("./Shaders/PBR.vert.glsl"), ResourceManager::ReadFileToString("./Shaders/PBR.frag.glsl"));
 //    skyBoxShader_.Startup(ResourceManager::ReadFileToString("./Shaders/SkyBox.vert.glsl"), ResourceManager::ReadFileToString("./Shaders/SkyBox.frag.glsl"));
 }
+void RenderEngine::Render(const VertexBuffer& vertexBuffer, const std::vector<std::tuple<int, int, int>>& offsetList, const std::vector<std::shared_ptr<Material>>& materialList)
+{
+    glBindVertexArray(vertexBuffer.indexBufferID_);
+    for (const auto& offset : offsetList) {
+        int indexOffset = std::get<0>(offset);
+        int numOfIndex = std::get<1>(offset);
+        int materialIndex = std::get<2>(offset);
+        auto& material = materialList[materialIndex];
+        material->Use();
+        glDrawElements(GL_TRIANGLES, numOfIndex, vertexBuffer.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+    }
+}
+
 void RenderEngine::SetupShader()
 {
     

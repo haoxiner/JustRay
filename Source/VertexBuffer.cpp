@@ -38,6 +38,7 @@ VertexBuffer::VertexBuffer(const void* vertexData, const int sizeOfVertexData, c
     }
     
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeOfIndexData, indexData, GL_STATIC_DRAW);
+    indexType_ = GL_UNSIGNED_INT;
     glBindVertexArray(0);
 }
 VertexBuffer::~VertexBuffer()
