@@ -5,27 +5,33 @@
 #include "lodepng.h"
 #include <iostream>
 #include <vector>
+#include <fstream>
+
 namespace JustRay
 {
 Material::Material(const std::string& name)
 {
     const std::string directory = "Material/" + name + "/";
-
     Json::JsonObject config;
     Json::Parser parser(&config, ResourceLoader::LoadFileAsString(directory + "material.json"));
     std::string type = config.GetValue("type").AsString();
     std::cerr << type << std::endl;
     
-    unsigned int width = 0;
-    unsigned int height = 0;
-    std::vector<unsigned char> basecolorMap;
-    lodepng::decode(basecolorMap, width, height, GetFilePath(directory + "basecolor.png").c_str());
-    std::vector<unsigned char> roughnessMap;
-    lodepng::decode(roughnessMap, width, height, GetFilePath(directory + "roughness.png").c_str());
-    for (int i = 0; i < basecolorMap.size(); i+=4) {
-        basecolorMap[i + 3] = roughnessMap[i];
-    }
-    LoadTexture(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, width, height, basecolorMap.data());
+    short header[4];
+    
+    std::ifstream baseColorFile(directory + "basecolor.raw", std::ios::binary);
+    baseColorFile.read(reinterpret_cast<char*>(header), sizeof(header));
+    std::vector<unsigned char> baseColorMap(header[0] * header[1] * header[2]);
+    baseColorFile.read(reinterpret_cast<char*>(baseColorMap.data()), baseColorMap.size());
+    baseColorFile.close();
+    LoadTexture(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, header[0], header[1], baseColorMap.data());
+    
+    std::ifstream roughnessFile(directory + "roughness.raw", std::ios::binary);
+    roughnessFile.read(reinterpret_cast<char*>(header), sizeof(header));
+    std::vector<unsigned char> roughnessMap(header[0] * header[1] * header[2]);
+    roughnessFile.read(reinterpret_cast<char*>(roughnessMap.data()), roughnessMap.size());
+    roughnessFile.close();
+    LoadTexture(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, header[0], header[1], roughnessMap.data());
 }
 
 Material::~Material()

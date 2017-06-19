@@ -27,8 +27,8 @@ in vec2 texCoord;
 //	mat4 modelToWorld;
 //	vec4 material[2];
 //};
-uniform sampler2D basecolorAndRoughnessMap;
-uniform sampler2D normalAndMetallicMap;
+uniform sampler2D baseColorMap;
+uniform sampler2D roughnessMap;
 
 vec3 ApproximationSRgbToLinear(in vec3 sRGBCol)
 {
@@ -45,7 +45,7 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = texture(basecolorAndRoughnessMap, texCoord);
+	fragColor = texture(baseColorMap, texCoord);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
     fragColor.w = 1.0;
 }

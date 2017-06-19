@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
+		221770DC1EF8064500CB1661 /* Cubemap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 221770DA1EF8064500CB1661 /* Cubemap.cpp */; };
+		221770E41EF80B2000CB1661 /* half.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 221770DF1EF80B2000CB1661 /* half.cpp */; };
+		221770E81EF80D7A00CB1661 /* Environment in Resources */ = {isa = PBXBuildFile; fileRef = 221770E71EF80D7A00CB1661 /* Environment */; };
 		223EA8AD1EF612840077DB54 /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = 223EA8AC1EF612840077DB54 /* Shader */; };
 		223EA8AF1EF61BA80077DB54 /* AppleSystemTools.mm in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8AE1EF61BA80077DB54 /* AppleSystemTools.mm */; };
 		223EA8B31EF6225C0077DB54 /* PerformanceTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8B11EF6225C0077DB54 /* PerformanceTimer.cpp */; };
@@ -68,6 +71,18 @@
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* JustRay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JustRay.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		221770D61EF7EC0600CB1661 /* libiOSOpenEXRLibrary.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiOSOpenEXRLibrary.a; path = ThirdParty/libiOSOpenEXRLibrary.a; sourceTree = "<group>"; };
+		221770D81EF7EC3A00CB1661 /* OpenEXRSim.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = OpenEXRSim.a; path = ThirdParty/OpenEXRSim.a; sourceTree = "<group>"; };
+		221770DA1EF8064500CB1661 /* Cubemap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cubemap.cpp; path = Source/Cubemap.cpp; sourceTree = "<group>"; };
+		221770DB1EF8064500CB1661 /* Cubemap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cubemap.h; path = Source/Cubemap.h; sourceTree = "<group>"; };
+		221770DE1EF80B2000CB1661 /* eLut.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = eLut.h; path = Source/eLut.h; sourceTree = "<group>"; };
+		221770DF1EF80B2000CB1661 /* half.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = half.cpp; path = Source/half.cpp; sourceTree = "<group>"; };
+		221770E01EF80B2000CB1661 /* half.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = half.h; path = Source/half.h; sourceTree = "<group>"; };
+		221770E11EF80B2000CB1661 /* halfExport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = halfExport.h; path = Source/halfExport.h; sourceTree = "<group>"; };
+		221770E21EF80B2000CB1661 /* halfFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = halfFunction.h; path = Source/halfFunction.h; sourceTree = "<group>"; };
+		221770E31EF80B2000CB1661 /* halfLimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = halfLimits.h; path = Source/halfLimits.h; sourceTree = "<group>"; };
+		221770E51EF80B4C00CB1661 /* toFloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = toFloat.h; path = Source/toFloat.h; sourceTree = "<group>"; };
+		221770E71EF80D7A00CB1661 /* Environment */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Environment; path = Resource/Environment; sourceTree = "<group>"; };
 		223EA8AC1EF612840077DB54 /* Shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shader; path = Resource/Shader; sourceTree = "<group>"; };
 		223EA8AE1EF61BA80077DB54 /* AppleSystemTools.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppleSystemTools.mm; path = Source/AppleSystemTools.mm; sourceTree = "<group>"; };
 		223EA8B01EF61C0E0077DB54 /* AppleSystemTools.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppleSystemTools.h; path = Source/AppleSystemTools.h; sourceTree = "<group>"; };
@@ -162,6 +177,37 @@
 			name = Product;
 			sourceTree = "<group>";
 		};
+		221770D21EF7EC0500CB1661 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				221770D81EF7EC3A00CB1661 /* OpenEXRSim.a */,
+				221770D61EF7EC0600CB1661 /* libiOSOpenEXRLibrary.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		221770DD1EF80B0E00CB1661 /* Half */ = {
+			isa = PBXGroup;
+			children = (
+				221770E51EF80B4C00CB1661 /* toFloat.h */,
+				221770DE1EF80B2000CB1661 /* eLut.h */,
+				221770DF1EF80B2000CB1661 /* half.cpp */,
+				221770E01EF80B2000CB1661 /* half.h */,
+				221770E11EF80B2000CB1661 /* halfExport.h */,
+				221770E21EF80B2000CB1661 /* halfFunction.h */,
+				221770E31EF80B2000CB1661 /* halfLimits.h */,
+			);
+			name = Half;
+			sourceTree = "<group>";
+		};
+		221770E61EF80D6D00CB1661 /* Environment */ = {
+			isa = PBXGroup;
+			children = (
+				221770E71EF80D7A00CB1661 /* Environment */,
+			);
+			name = Environment;
+			sourceTree = "<group>";
+		};
 		223EA8A81EF6119A0077DB54 /* Shader */ = {
 			isa = PBXGroup;
 			children = (
@@ -232,6 +278,8 @@
 		22C7C74A1EF524C1009DA6B2 /* RenderEngine */ = {
 			isa = PBXGroup;
 			children = (
+				221770DA1EF8064500CB1661 /* Cubemap.cpp */,
+				221770DB1EF8064500CB1661 /* Cubemap.h */,
 				223EA8BC1EF643D70077DB54 /* Material.cpp */,
 				223EA8BD1EF643D70077DB54 /* Material.h */,
 				22529AA01EF5818600FDC476 /* ModelGroup.h */,
@@ -252,6 +300,7 @@
 		22C7C7531EF533B0009DA6B2 /* Util */ = {
 			isa = PBXGroup;
 			children = (
+				221770DD1EF80B0E00CB1661 /* Half */,
 				223EA8C81EF6B9430077DB54 /* lodepng.cpp */,
 				223EA8C91EF6B9430077DB54 /* lodepng.h */,
 				22529A9B1EF5818600FDC476 /* Json.cpp */,
@@ -273,6 +322,7 @@
 				29B97317FDCFA39411CA2CEA /* Resource */,
 				29B97323FDCFA39411CA2CEA /* Framework */,
 				19C28FACFE9D520D11CA2CBB /* Product */,
+				221770D21EF7EC0500CB1661 /* Frameworks */,
 			);
 			name = CustomTemplate;
 			sourceTree = "<group>";
@@ -293,6 +343,7 @@
 		29B97317FDCFA39411CA2CEA /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				221770E61EF80D6D00CB1661 /* Environment */,
 				223EA8CB1EF6BDCE0077DB54 /* Material */,
 				223EA8C21EF69DFD0077DB54 /* Model */,
 				223EA8A81EF6119A0077DB54 /* Shader */,
@@ -412,6 +463,7 @@
 			files = (
 				223EA8C41EF69E0A0077DB54 /* Model in Resources */,
 				FD77A07D0E26BD8C00F39101 /* Icon.png in Resources */,
+				221770E81EF80D7A00CB1661 /* Environment in Resources */,
 				223EA8AD1EF612840077DB54 /* Shader in Resources */,
 				223EA8CD1EF6BDDE0077DB54 /* Material in Resources */,
 				FD77A07F0E26BDA900F39101 /* Default.png in Resources */,
@@ -433,12 +485,14 @@
 				22529AB01EF5818600FDC476 /* ShaderProgram.cpp in Sources */,
 				223EA8B71EF627EF0077DB54 /* Application.cpp in Sources */,
 				223EA8B31EF6225C0077DB54 /* PerformanceTimer.cpp in Sources */,
+				221770DC1EF8064500CB1661 /* Cubemap.cpp in Sources */,
 				22C7C7411EF4E1E4009DA6B2 /* imgui_draw.cpp in Sources */,
 				223EA8BE1EF643D70077DB54 /* Material.cpp in Sources */,
 				22C7C7421EF4E1E4009DA6B2 /* imgui.cpp in Sources */,
 				22C7C7401EF4E1E4009DA6B2 /* imgui_demo.cpp in Sources */,
 				22529AAF1EF5818600FDC476 /* RenderEngine.cpp in Sources */,
 				223EA8C71EF6A7B30077DB54 /* ResourceLoader.cpp in Sources */,
+				221770E41EF80B2000CB1661 /* half.cpp in Sources */,
 				22529AAC1EF5818600FDC476 /* Json.cpp in Sources */,
 				22529AAD1EF5818600FDC476 /* main.cpp in Sources */,
 				22529AAA1EF5818600FDC476 /* Display.cpp in Sources */,
@@ -465,7 +519,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = Info.plist;
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ThirdParty",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = name.haoxin;
 				PRODUCT_NAME = JustRay;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -484,7 +541,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = Info.plist;
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ThirdParty",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = name.haoxin;
 				PRODUCT_NAME = JustRay;
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -95,7 +95,7 @@ void RenderEngine::SetupShader()
     glDeleteShader(fragmentShaderID);
     
     glUseProgram(pbrShaderForStationaryEntity_);
-    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "basecolorAndRoughnessMap"), 3);
+    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "baseColorMap"), 3);
 }
 void RenderEngine::SetupConstantBuffers()
 {
