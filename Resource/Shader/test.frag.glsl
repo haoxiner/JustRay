@@ -27,6 +27,8 @@ in vec2 texCoord;
 //	mat4 modelToWorld;
 //	vec4 material[2];
 //};
+uniform samplerCube diffuseCubemap;
+uniform samplerCube specularCubemap;
 uniform sampler2D baseColorMap;
 uniform sampler2D roughnessMap;
 
@@ -45,7 +47,8 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = texture(baseColorMap, texCoord);
+    vec3 N = normalize(normal);
+	fragColor = textureLod(specularCubemap, N, 0.0);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
     fragColor.w = 1.0;
 }

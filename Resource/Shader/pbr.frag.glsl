@@ -9,28 +9,32 @@ precision highp samplerCube;
 #define TWO_PI (2.0 * PI)
 
 in vec3 position;
+in vec3 tangent;
+in vec3 bitangent;
 in vec3 normal;
 in vec2 texCoord;
+
 out vec4 fragColor;
-layout(binding = 1, std140) uniform PerFrameBuffer
+layout(std140) uniform PerEngineBuffer
+{
+	mat4 viewToProjection;
+};
+layout(std140) uniform PerFrameBuffer
 {
 	vec4 cameraPosition;
 	mat4 worldToView;
 };
-layout(binding = 2, std140) uniform PerObjectBuffer
+layout(std140) uniform PerObjectBuffer
 {
 	mat4 modelToWorld;
 	vec4 material[2];
-	vec4 animationState;
 };
 
-layout(binding = 0) uniform sampler2D dfgMap;
-layout(binding = 1) uniform samplerCube diffuseEnvmap;
-layout(binding = 2) uniform samplerCube specularEnvmap;
-
-layout(binding = 3) uniform sampler2D baseColorMap;
-layout(binding = 4) uniform sampler2D roughnessMap;
-layout(binding = 5) uniform sampler2D metallicMap;
+uniform sampler2D dfgMap;
+uniform samplerCube diffuseEnvmap;
+uniform samplerCube specularEnvmap;
+uniform sampler2D baseColorMap;
+uniform sampler2D roughnessMap;
 
 float Saturate(float value)
 {
@@ -95,7 +99,7 @@ vec3 GetSpecularDominantDir(vec3 N, vec3 R, float roughness)
 // but due to other approximation in our decomposition it doesn ’t perform well
 vec3 GetSpecularDominantDir(vec3 N, vec3 R, float NdotV , float roughness)
 {
-	float lerpFactor = pow(1 - NdotV , 10.8649) * (1 - 0.298475 * log(39.4115 - 39.0029 *
+	float lerpFactor = pow(1.0 - NdotV , 10.8649) * (1.0 - 0.298475 * log(39.4115 - 39.0029 *
 	roughness)) + 0.298475 * log(39.4115 - 39.0029 * roughness);
 	// The result is not normalized as we fetch in a cubemap
 	return mix(N, R, Saturate(lerpFactor));
@@ -121,7 +125,7 @@ vec3 EvaluateIBLSpecular(vec3 N, vec3 V, float NdotV , float alphaG, float rough
 
 	// vec3 dominantR = GetSpecularDominantDir(N, R, NdotV, roughness);
 
-	float mipCount = 6;
+	float mipCount = 6.0;
 	
 	float mipLevel = LinearRoughnessToMipLevel(roughness , mipCount);
 	vec3 preLD = SampleCubemapForZup(specularEnvmap , dominantR , mipLevel).rgb;
@@ -211,7 +215,7 @@ float D_GGX(float NdotH , float m)
 {
 	// Divide by PI is apply later
 	float m2 = m * m;
-	float f = (NdotH * m2 - NdotH) * NdotH + 1;
+	float f = (NdotH * m2 - NdotH) * NdotH + 1.0;
 	return m2 / (f * f);
 }
 
@@ -239,17 +243,34 @@ void main()
 	vec3 L = normalize(eye - position);
 	vec3 V = normalize(eye - position);
 	vec3 N = normalize(normal);
-	
-    // material[0].x: scale texcoord
-    // material[0].y: 0->no texture, 1->texture
+    
+    // material[0].x: 0->no texture, 1->texture
+    // material[0].y: scale texcoord
     // material[0].z: mettalic
     // material[1].xyz: basecolor
     // material[1].w: roughness
     
-	vec2 uv = texCoord * material[0].x;
-    vec3 baseColor = material[0].y > 0 ? texture(baseColorMap, uv).rgb : material[1].xyz;
-	float roughness = material[0].y > 0 ? texture(roughnessMap, uv).r : material[1].w;
-	float metallic = material[0].y > 0 ? texture(metallicMap, uv).r : material[0].z;
+    vec3 baseColor = vec3(1.0);
+	float roughness = 1.0;
+	float metallic = 1.0;
+    
+    if (material[0].x > 0.0) {
+        vec2 uv = texCoord * material[0].y;
+        vec4 baseColorAndMetallic = texture(baseColorMap, uv);
+        vec4 normalAndRoughness = texture(roughnessMap, uv);
+        
+        baseColor = baseColorAndMetallic.rgb;
+        roughness = normalAndRoughness.a;
+        metallic = baseColorAndMetallic.a;
+        
+        vec3 T = normalize(tangent);
+        vec3 B = normalize(bitangent);
+        mat3 TBN = mat3(T,B,N);
+        N = normalize(TBN * normalAndRoughness.xyz);
+    }
+    metallic *= material[0].z;
+    baseColor *= material[1].xyz;
+    roughness *= material[1].w;
     
     float alphaG = roughness * roughness;
 
@@ -278,15 +299,14 @@ void main()
 	float D = D_GGX(NdotH , alphaG);
 	vec3 Fr = D * F * Vis / PI;
 	// Diffuse BRDF
-	float Fd = Fr_DisneyDiffuse(NdotV , NdotL , LdotH , roughness).r / PI;
+	float Fd = Fr_DisneyDiffuse(NdotV , NdotL , LdotH , roughness) / PI;
 	
 	// fragColor.xyz += vec3(10000, 10000, 10000) * (Fr + diffuseColor * Fd) / dot(pointLight, pointLight);
 //////////////////////////////////////////////////////////////////
 	
-	float exposure = 1;
+	float exposure = 1.0;
 	fragColor *= exposure;
 	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
-	// fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
+    fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
 	fragColor.w = 1.0;
-
 }

@@ -17,6 +17,7 @@ friend class RenderEngine;
 public:
     Cubemap(const std::string& name);
     ~Cubemap();
+    void Bind(int uinit);
 private:
     GLuint textureID_ = 0;
     GLuint samplerID_ = 0;

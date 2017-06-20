@@ -1,27 +1,24 @@
 #pragma once
-#include <cstdint>
+#include "Platform.h"
 namespace JustRay
 {
 class Input {
+friend class Display;
 public:
-    void UpdateKeyboard(const uint8_t* state);
-    void UpdateMouse(unsigned int state, int x, int y);
-    float GetLeftHorizontalAxis() const;
-    float GetLeftVerticalAxis() const;
-    float GetRightHorizontalAxis() const;
-    float GetRightVerticalAxis() const;
-    bool Fire0() const;
-    bool Test() const;
-    bool Jump() const;
-    bool Quit() const;
+//    void TouchBegin(int x, int y);
+//    void TouchMove(int x, int y);
+//    void TouchEnd(int x, int y);
+//    void Pinch
+    bool Move() const;
+    float GetX() const;
+    float GetY() const;
 private:
-    float leftHorizontalAxis_ = 0.0f;
-    float leftVerticalAxis_ = 0.0f;
-    float rightHorizontalAxis_ = 0.0f;
-    float rightVerticalAxis_ = 0.0f;
-    bool fire0_ = false;
-    bool test_ = false;
-    bool jump_ = false;
-    bool quit_ = false;
+    void Update(const SDL_Event& event);
+private:
+    bool touching_ = false;
+    float x_;
+    float y_;
+    int fingerCount_ = 0;
+    bool moving_ = false;
 };
 }

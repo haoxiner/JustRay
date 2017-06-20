@@ -8,6 +8,8 @@
 
 #include "RenderEngine.h"
 #include "ResourceLoader.h"
+#include "AppleSystemTools.h"
+#include "half.h"
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -38,6 +40,7 @@ enum ConstantBufferType
     NUM_OF_BUFFER
 };
 static std::string BUFFER_NAMES[] = {"PerEngineBuffer", "PerFrameBuffer", "PerObjectBuffer"};
+
 void RenderEngine::Startup(int xResolution, int yResolution)
 {
     xResolution_ = xResolution;
@@ -48,6 +51,7 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
     glViewport(0, 0, xResolution, yResolution);
 
     glGenSamplers(1, &defaultSamplerID_);
@@ -61,8 +65,8 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glBindSampler(0, repeatSamplerID_);
-    glBindSampler(1, repeatSamplerID_);
+    
+    glBindSampler(0, defaultSamplerID_);
     glBindSampler(3, repeatSamplerID_);
     glBindSampler(4, repeatSamplerID_);
     glBindSampler(5, repeatSamplerID_);
@@ -72,14 +76,38 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     SetupPreIntegratedData();
 //    SetupEnvironment("uffizi");
 }
+void RenderEngine::SetEnvironment(const std::string &name)
+{
+    diffuseCubemap_.reset(new Cubemap("Environment/" + name + "/diffuse.ibl"));
+    specularCubemap_.reset(new Cubemap("Environment/" + name + "/specular.ibl"));
+}
 void RenderEngine::Render(const ModelGroup& modelGroup)
 {
+    static int testFloat = 0.0f;
+    testFloat += 1.0f;
+    Quaternion quat;
+    float sinTheta = std::sinf(testFloat * 0.01f);
+    float cosTheta = std::cosf(testFloat * 0.01f);
+    quat.x = quat.y = 0.0f;
+    quat.z = cosTheta;
+    quat.w = sinTheta;
+    
+    PerObjectBuffer perObjectBuffer;
+    perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(quat));
+    perObjectBuffer.material[0] = Float4(4.0,1.0,1.0,1.0);
+    perObjectBuffer.material[1] = Float4(1.0,1.0,1.0,1.0);
+    glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
+    
     glUseProgram(pbrShaderForStationaryEntity_);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, dfgTextureID_);
+    diffuseCubemap_->Bind(1);
+    specularCubemap_->Bind(2);
     glBindVertexArray(modelGroup.vertexArrayID_);
     for (const auto& model : modelGroup.models_) {
         int indexOffset = std::get<0>(model);
         int numOfIndex = std::get<1>(model);
-//        int materialIndex = std::get<2>(offset);
         auto& material = std::get<2>(model);
         material->Use();
         glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
@@ -89,13 +117,17 @@ void RenderEngine::Render(const ModelGroup& modelGroup)
 void RenderEngine::SetupShader()
 {
     auto vertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Stationary.vert.glsl"), GL_VERTEX_SHADER);
-    auto fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/test.frag.glsl"), GL_FRAGMENT_SHADER);
+    auto fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/pbr.frag.glsl"), GL_FRAGMENT_SHADER);
     pbrShaderForStationaryEntity_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
     
     glUseProgram(pbrShaderForStationaryEntity_);
+    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "dfgMap"), 0);
+    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "diffuseEnvmap"), 1);
+    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "specularEnvmap"), 2);
     glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "baseColorMap"), 3);
+    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "roughnessMap"), 4);
 }
 void RenderEngine::SetupConstantBuffers()
 {
@@ -103,13 +135,15 @@ void RenderEngine::SetupConstantBuffers()
     bufferList_.resize(NUM_OF_BUFFER);
     glGenBuffers(static_cast<GLsizei>(bufferList_.size()), bufferList_.data());
     PerEngineBuffer staticConstantBuffer;
-    staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 0.001f, 100.0f);
+    staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 1.0f, 100.0f);
     
     PerFrameBuffer perFrameBuffer;
-    perFrameBuffer.cameraPosition = Float4(0.0);
-    perFrameBuffer.worldToView = glm::lookAtRH(Float3(0,-10,0), Float3(0,1,0), Float3(0,0,1));
+    perFrameBuffer.cameraPosition = Float4(0,-5,1, 1.0);
+    perFrameBuffer.worldToView = glm::lookAtRH(Float3(0,-5,1), Float3(0,0,1), Float3(0,0,1));
     PerObjectBuffer perObjectBuffer;
     perObjectBuffer.modelToWorld = Matrix4x4(1.0);
+    perObjectBuffer.material[0] = Float4(2.0,1.0,1.0,1.0);
+    perObjectBuffer.material[1] = Float4(1.0);
     
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_ENGINE_BUFFER]);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(PerEngineBuffer), &staticConstantBuffer, GL_STATIC_DRAW);
@@ -126,16 +160,18 @@ void RenderEngine::SetupConstantBuffers()
 void RenderEngine::SetupPreIntegratedData()
 {
     // load dfg
-//    auto dib = FreeImage_Load(FIF_EXR, "../../Resources/Environment/dfg.exr");
-//    auto w = FreeImage_GetWidth(dib);
-//    auto h = FreeImage_GetHeight(dib);
-//    auto bits = FreeImage_GetBits(dib);
-//    glCreateTextures(GL_TEXTURE_2D, 1, &dfgTextureID_);
-//    glTextureStorage2D(dfgTextureID_, 1, GL_RGB16F, w, h);
-//    glTextureSubImage2D(dfgTextureID_, 0, 0, 0, w, h, GL_RGB, GL_FLOAT, bits);
-//    FreeImage_Unload(dib);
-//    glBindTextureUnit(0, dfgTextureID_);
-//    glBindSampler(0, defaultSamplerID_);
-//    std::cerr << "DFG: " << w << "," << h << std::endl;
+    short header[4];
+    std::ifstream file(GetFilePath("Environment/dfg.ibl.float"), std::ios::binary);
+    file.read(reinterpret_cast<char*>(header), sizeof(header));
+    int width = header[0];
+    int height = header[1];
+    std::vector<float> floatData(width * height * header[2]);
+    file.read(reinterpret_cast<char*>(floatData.data()), floatData.size()*sizeof(float));
+    file.close();
+    glGenTextures(1, &dfgTextureID_);
+    glBindTexture(GL_TEXTURE_2D, dfgTextureID_);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, width, height);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, floatData.data());
+    std::cerr << glGetError() << std::endl;
 }
 }

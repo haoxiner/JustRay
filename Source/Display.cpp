@@ -23,15 +23,17 @@ bool Display::Startup()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
     SDL_DisplayMode displayMode;
     SDL_GetCurrentDisplayMode(0, &displayMode);
     xResolution_ = displayMode.w;
     yResolution_ = displayMode.h;
     
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
-
-    window_ = SDL_CreateWindow(nullptr, 0, 0, xResolution_, yResolution_, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
+    window_ = SDL_CreateWindow(nullptr, 0, 0, xResolution_, yResolution_, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    
+    
     if (window_ == nullptr) {
         
         return false;
@@ -55,12 +57,14 @@ bool Display::Startup()
 void Display::UpdateEvent()
 {
     SDL_Event event;
-    while (SDL_PollEvent(&event) != 0) {
-        ImGui_ImplSdlGL3_ProcessEvent(&event);
-        if (event.type == SDL_QUIT) {
-            running_ = false;
+    if (SDL_WaitEvent(&event) != 0) {
+        while (SDL_PollEvent(&event) != 0) {
+            ImGui_ImplSdlGL3_ProcessEvent(&event);
+            if (event.type == SDL_QUIT) {
+                running_ = false;
+            }
+            input_.Update(event);
         }
-        input_.UpdateKeyboard(SDL_GetKeyboardState(nullptr));
     }
     ImGui_ImplSdlGL3_NewFrame(window_);
 }

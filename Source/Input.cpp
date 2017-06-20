@@ -1,86 +1,37 @@
 #include "Input.h"
 #include "Platform.h"
+#include <iostream>
 namespace JustRay
 {
-void Input::UpdateKeyboard(const uint8_t* state) {
-    leftHorizontalAxis_ = 0.0f;
-    leftVerticalAxis_ = 0.0f;
-    rightHorizontalAxis_ = 0.0f;
-    rightVerticalAxis_ = 0.0f;
-    fire0_ = false;
-    test_ = false;
-    jump_ = false;
-    if (state[SDL_SCANCODE_A]) {
-        leftHorizontalAxis_ -= 1.0f;
-    }
-    if (state[SDL_SCANCODE_D]) {
-        leftHorizontalAxis_ += 1.0f;
-    }
-    if (state[SDL_SCANCODE_W]) {
-        leftVerticalAxis_ += 1.0f;
-    }
-    if (state[SDL_SCANCODE_S]) {
-        leftVerticalAxis_ -= 1.0f;
-    }
-    if (state[SDL_SCANCODE_UP]) {
-        rightVerticalAxis_ += 1.0f;
-    }
-    if (state[SDL_SCANCODE_DOWN]) {
-        rightVerticalAxis_ -= 1.0f;
-    }
-    if (state[SDL_SCANCODE_LEFT]) {
-        rightHorizontalAxis_ -= 1.0f;
-    }
-    if (state[SDL_SCANCODE_RIGHT]) {
-        rightHorizontalAxis_ += 1.0f;
-    }
-    if (state[SDL_SCANCODE_Z]) {
-        fire0_ = true;
-    }
-    if (state[SDL_SCANCODE_T]) {
-        test_ = true;
-    }
-    if (state[SDL_SCANCODE_Q]) {
-        quit_ = true;
-    }
-    if (state[SDL_SCANCODE_SPACE]) {
-        jump_ = true;
+void Input::Update(const SDL_Event& event)
+{
+    moving_ = false;
+    if (event.type == SDL_FINGERDOWN) {
+    } else if (event.type == SDL_FINGERUP) {
+        if (fingerCount_ > 0) {
+            fingerCount_--;
+        }
+    } else if (event.type == SDL_FINGERMOTION) {
+        if (fingerCount_ <= 1) {
+            moving_ = true;
+            x_ = event.tfinger.x;
+            y_ = event.tfinger.y;
+        }
+    } else if (event.type == SDL_MULTIGESTURE) {
+        fingerCount_ = event.mgesture.numFingers;
+//        std::cerr << event.mgesture.dDist << std::endl;
     }
 }
-
-void Input::UpdateMouse(unsigned int state, int x, int y) {
-
+bool Input::Move() const
+{
+    return moving_;
 }
-
-float Input::GetLeftHorizontalAxis() const {
-    return leftHorizontalAxis_;
+float Input::GetX() const
+{
+    return x_;
 }
-
-float Input::GetLeftVerticalAxis() const {
-    return leftVerticalAxis_;
-}
-
-float Input::GetRightHorizontalAxis() const {
-    return rightHorizontalAxis_;
-}
-
-float Input::GetRightVerticalAxis() const {
-    return rightVerticalAxis_;
-}
-
-bool Input::Fire0() const {
-    return fire0_;
-}
-
-bool Input::Test() const {
-    return test_;
-}
-
-bool Input::Jump() const {
-    return jump_;
-}
-
-bool Input::Quit() const {
-    return quit_;
+float Input::GetY() const
+{
+    return y_;
 }
 }

@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         std::cerr << "ERROR" << std::endl;
         return -1;
     }
-    
+    std::cerr << display.GetXResolution() << ", " << display.GetYResolution() << std::endl;
     JustRay::ModelViewer* modelViewer = new JustRay::ModelViewer;
     JustRay::RenderEngine renderEngine;
     renderEngine.Startup(display.GetXResolution(), display.GetYResolution());
