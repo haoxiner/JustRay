@@ -10,6 +10,7 @@ public:
 //    void TouchEnd(int x, int y);
 //    void Pinch
     bool Move() const;
+    float Pinch() const;
     float GetX() const;
     float GetY() const;
 private:
@@ -20,5 +21,6 @@ private:
     float y_;
     int fingerCount_ = 0;
     bool moving_ = false;
+    float pinch_ = 0.0f;
 };
 }

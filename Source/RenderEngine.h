@@ -22,6 +22,7 @@ class RenderEngine
 public:
     void Startup(int xResolution, int yResolution);
     void SetEnvironment(const std::string& name);
+    void SetCamera(const Float3& position, const Float3& focus, const Float3& up);
     void Render(const ModelGroup& modelGroup);
 private:
     void SetupShader();

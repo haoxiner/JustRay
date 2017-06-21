@@ -47,8 +47,9 @@ using Float4 = glm::vec4;
 using Int2 = glm::ivec2;
 using Int3 = glm::ivec3;
 using Int4 = glm::ivec4;
-using Quaternion = Float4;
+using Quaternion = glm::quat;
 using Matrix4x4 = glm::mat4;
+using Matrix3x3 = glm::mat3;
 
 /*
     normalize

@@ -61,10 +61,15 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     glSamplerParameteri(defaultSamplerID_, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
     glGenSamplers(1, &repeatSamplerID_);
-    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MIN_LOD, 0);
+    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MAX_LOD, 4);
+    float aniso = 0.0f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+    glSamplerParameterf(repeatSamplerID_, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
     
     glBindSampler(0, defaultSamplerID_);
     glBindSampler(3, repeatSamplerID_);
@@ -74,43 +79,43 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     SetupShader();
     SetupConstantBuffers();
     SetupPreIntegratedData();
-//    SetupEnvironment("uffizi");
 }
 void RenderEngine::SetEnvironment(const std::string &name)
 {
     diffuseCubemap_.reset(new Cubemap("Environment/" + name + "/diffuse.ibl"));
     specularCubemap_.reset(new Cubemap("Environment/" + name + "/specular.ibl"));
 }
+void RenderEngine::SetCamera(const Float3 &position, const Float3 &focus, const Float3 &up)
+{
+    PerFrameBuffer perFrameBuffer;
+    perFrameBuffer.cameraPosition = Float4(position, 1.0);
+    perFrameBuffer.worldToView = glm::lookAtRH(position, focus, up);
+    glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perFrameBuffer), &perFrameBuffer);
+}
 void RenderEngine::Render(const ModelGroup& modelGroup)
 {
-    static int testFloat = 0.0f;
-    testFloat += 1.0f;
-    Quaternion quat;
-    float sinTheta = std::sinf(testFloat * 0.01f);
-    float cosTheta = std::cosf(testFloat * 0.01f);
-    quat.x = quat.y = 0.0f;
-    quat.z = cosTheta;
-    quat.w = sinTheta;
-    
-    PerObjectBuffer perObjectBuffer;
-    perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(quat));
-    perObjectBuffer.material[0] = Float4(4.0,1.0,1.0,1.0);
-    perObjectBuffer.material[1] = Float4(1.0,1.0,1.0,1.0);
-    glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
-    
     glUseProgram(pbrShaderForStationaryEntity_);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, dfgTextureID_);
     diffuseCubemap_->Bind(1);
     specularCubemap_->Bind(2);
     glBindVertexArray(modelGroup.vertexArrayID_);
-    for (const auto& model : modelGroup.models_) {
-        int indexOffset = std::get<0>(model);
-        int numOfIndex = std::get<1>(model);
-        auto& material = std::get<2>(model);
-        material->Use();
-        glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+    
+    for (auto&& entity : modelGroup.entities) {
+        PerObjectBuffer perObjectBuffer;
+        perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
+        glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
+        for (const auto& model : modelGroup.models_) {
+            int indexOffset = std::get<0>(model);
+            int numOfIndex = std::get<1>(model);
+            auto& material = std::get<2>(model);
+            material->Use();
+            perObjectBuffer.material[0] = material->custom[0];
+            perObjectBuffer.material[1] = material->custom[1];
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
+            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+        }
     }
 }
 
@@ -138,8 +143,8 @@ void RenderEngine::SetupConstantBuffers()
     staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 1.0f, 100.0f);
     
     PerFrameBuffer perFrameBuffer;
-    perFrameBuffer.cameraPosition = Float4(0,-5,1, 1.0);
-    perFrameBuffer.worldToView = glm::lookAtRH(Float3(0,-5,1), Float3(0,0,1), Float3(0,0,1));
+    perFrameBuffer.cameraPosition = Float4(0,-3,1, 1.0);
+    perFrameBuffer.worldToView = glm::lookAtRH(Float3(0,-3,1), Float3(0,0,1), Float3(0,0,1));
     PerObjectBuffer perObjectBuffer;
     perObjectBuffer.modelToWorld = Matrix4x4(1.0);
     perObjectBuffer.material[0] = Float4(2.0,1.0,1.0,1.0);

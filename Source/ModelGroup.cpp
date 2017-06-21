@@ -14,35 +14,45 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <utility>
 namespace JustRay
 {
-ModelGroup::ModelGroup(const std::string& name)
+ModelGroup::ModelGroup(const std::string& name, std::map<const std::string, std::shared_ptr<Material>>& materialMap)
 {
     Json::JsonObject json;
     Json::Parser parser(&json, ResourceLoader::LoadFileAsString("Model/" + name + ".json"));
     if (!parser.HasError()) {
-        auto vertexInfo = json.GetValue("vertex").AsJsonObject();
-        int vertexCount = vertexInfo->GetValue("count").AsInt();
-        
-        auto indexInfo = json.GetValue("index").AsJsonObject();
-        int indexCount = indexInfo->GetValue("count").AsInt();
-        
+        auto modelArrayObject = json.GetValue("model");
+        auto modelArray = modelArrayObject.AsJsonArray();
+        int modelArraySize = modelArrayObject.GetType();
         std::ifstream file(GetFilePath("Model/" + name + ".mg"), std::ios::binary);
-        std::vector<Vertex> vertices(vertexCount);
-        std::vector<unsigned int> indices(indexCount);
-        int sizeOfVertexData = vertexCount * sizeof(Vertex);
-        file.read(reinterpret_cast<char*>(vertices.data()), sizeOfVertexData);
-        std::cerr << sizeOfVertexData << std::endl;
-        int sizeOfIndexData = indexCount * sizeof(unsigned int);
-        file.read(reinterpret_cast<char*>(indices.data()), sizeOfIndexData);
-        Load(vertices.data(), sizeOfVertexData, {
-            {3, GL_FLOAT, false, 3 * sizeof(float)},
-            {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
-            {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
-            {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
-            {2, GL_UNSIGNED_SHORT, true, sizeof(unsigned short) * 2}},
-            indices.data(), sizeOfIndexData);
-        models_.emplace_back(0, indexCount, new Material("bronze_copper"));
+        for (int i = 0; i < modelArraySize; i++) {
+            auto modelInfo = modelArray[i].AsJsonObject();
+            auto vertexInfo = modelInfo->GetValue("vertex").AsJsonObject();
+            int vertexCount = vertexInfo->GetValue("count").AsInt();
+            auto indexInfo = modelInfo->GetValue("index").AsJsonObject();
+            int indexCount = indexInfo->GetValue("count").AsInt();
+            auto materialName = modelInfo->GetValue("material").AsString();
+            std::vector<Vertex> vertices(vertexCount);
+            std::vector<unsigned int> indices(indexCount);
+            int sizeOfVertexData = vertexCount * sizeof(Vertex);
+            file.read(reinterpret_cast<char*>(vertices.data()), sizeOfVertexData);
+            std::cerr << sizeOfVertexData << std::endl;
+            int sizeOfIndexData = indexCount * sizeof(unsigned int);
+            file.read(reinterpret_cast<char*>(indices.data()), sizeOfIndexData);
+            Load(vertices.data(), sizeOfVertexData,
+                {{3, GL_FLOAT, false, 3 * sizeof(float)},
+                {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
+                {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
+                {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
+                {2, GL_HALF_FLOAT, false, sizeof(half) * 2}},
+                indices.data(), sizeOfIndexData);
+            auto iter = materialMap.find(materialName);
+            if (iter == materialMap.end()) {
+                iter = materialMap.insert(std::make_pair(materialName, std::make_shared<Material>(materialName, 4.0))).first;
+            }
+            models_.emplace_back(0, indexCount, iter->second);
+        }
     } else {
         std::cerr << parser.GetErrorMessage() << std::endl;
     }

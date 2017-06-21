@@ -30,6 +30,7 @@
 		22529AAF1EF5818600FDC476 /* RenderEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529AA21EF5818600FDC476 /* RenderEngine.cpp */; };
 		22529AB01EF5818600FDC476 /* ShaderProgram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529AA41EF5818600FDC476 /* ShaderProgram.cpp */; };
 		22529AB11EF5818600FDC476 /* Vertex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529AA61EF5818600FDC476 /* Vertex.cpp */; };
+		22739BF21EFA299000DBD98D /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22739BF01EFA299000DBD98D /* Entity.cpp */; };
 		22C7C7351EF4E046009DA6B2 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22C7C7341EF4E046009DA6B2 /* AVFoundation.framework */; };
 		22C7C7401EF4E1E4009DA6B2 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22C7C7381EF4E1E4009DA6B2 /* imgui_demo.cpp */; };
 		22C7C7411EF4E1E4009DA6B2 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22C7C7391EF4E1E4009DA6B2 /* imgui_draw.cpp */; };
@@ -116,6 +117,8 @@
 		22529AA51EF5818600FDC476 /* ShaderProgram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShaderProgram.h; path = Source/ShaderProgram.h; sourceTree = "<group>"; };
 		22529AA61EF5818600FDC476 /* Vertex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vertex.cpp; path = Source/Vertex.cpp; sourceTree = "<group>"; };
 		22529AA71EF5818600FDC476 /* Vertex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vertex.h; path = Source/Vertex.h; sourceTree = "<group>"; };
+		22739BF01EFA299000DBD98D /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = Source/Entity.cpp; sourceTree = "<group>"; };
+		22739BF11EFA299000DBD98D /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = Source/Entity.h; sourceTree = "<group>"; };
 		22C7C7341EF4E046009DA6B2 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		22C7C7371EF4E1E4009DA6B2 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ThirdParty/imgui/imconfig.h; sourceTree = "<group>"; };
 		22C7C7381EF4E1E4009DA6B2 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = ThirdParty/imgui/imgui_demo.cpp; sourceTree = "<group>"; };
@@ -277,6 +280,8 @@
 			children = (
 				221770DA1EF8064500CB1661 /* Cubemap.cpp */,
 				221770DB1EF8064500CB1661 /* Cubemap.h */,
+				22739BF11EFA299000DBD98D /* Entity.h */,
+				22739BF01EFA299000DBD98D /* Entity.cpp */,
 				223EA8BC1EF643D70077DB54 /* Material.cpp */,
 				223EA8BD1EF643D70077DB54 /* Material.h */,
 				22529AA01EF5818600FDC476 /* ModelGroup.h */,
@@ -487,6 +492,7 @@
 				22C7C7401EF4E1E4009DA6B2 /* imgui_demo.cpp in Sources */,
 				22529AAF1EF5818600FDC476 /* RenderEngine.cpp in Sources */,
 				223EA8C71EF6A7B30077DB54 /* ResourceLoader.cpp in Sources */,
+				22739BF21EFA299000DBD98D /* Entity.cpp in Sources */,
 				221770E41EF80B2000CB1661 /* half.cpp in Sources */,
 				22529AAC1EF5818600FDC476 /* Json.cpp in Sources */,
 				22529AAD1EF5818600FDC476 /* main.cpp in Sources */,

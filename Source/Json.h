@@ -38,6 +38,7 @@ public:
     std::string AsString() const;
     const JsonValue* AsJsonArray() const;
     const JsonObject* AsJsonObject() const;
+    const ValueType GetType() const { return type_; };
     static const JsonValue NULL_OBJECT;
 private:
     union Value

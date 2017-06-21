@@ -6,6 +6,7 @@ namespace JustRay
 void Input::Update(const SDL_Event& event)
 {
     moving_ = false;
+    pinch_ = 0.0f;
     if (event.type == SDL_FINGERDOWN) {
     } else if (event.type == SDL_FINGERUP) {
         if (fingerCount_ > 0) {
@@ -19,12 +20,16 @@ void Input::Update(const SDL_Event& event)
         }
     } else if (event.type == SDL_MULTIGESTURE) {
         fingerCount_ = event.mgesture.numFingers;
-//        std::cerr << event.mgesture.dDist << std::endl;
+        pinch_ = event.mgesture.dDist;
     }
 }
 bool Input::Move() const
 {
     return moving_;
+}
+float Input::Pinch() const
+{
+    return pinch_;
 }
 float Input::GetX() const
 {

@@ -260,13 +260,13 @@ void main()
         vec4 normalAndRoughness = texture(roughnessMap, uv);
         
         baseColor = baseColorAndMetallic.rgb;
-        roughness = normalAndRoughness.a;
         metallic = baseColorAndMetallic.a;
+        roughness = normalAndRoughness.a;
         
         vec3 T = normalize(tangent);
         vec3 B = normalize(bitangent);
         mat3 TBN = mat3(T,B,N);
-        N = normalize(TBN * normalAndRoughness.xyz);
+        N = TBN * normalize(normalAndRoughness.xyz * 2.0 - vec3(1.0));
     }
     metallic *= material[0].z;
     baseColor *= material[1].xyz;
@@ -309,4 +309,8 @@ void main()
 	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
 	fragColor.w = 1.0;
+    
+//    fragColor.xyz = SampleCubemapForZup(specularEnvmap, reflect(-V, N), 0.0).xyz;
+//    vec3 test = texture(roughnessMap, texCoord*4.0).rgb;
+//    fragColor.xyz = test;
 }
