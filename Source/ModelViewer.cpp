@@ -51,7 +51,12 @@ void ModelViewer::Update(float deltaTime, const Input& input, RenderEngine& rend
         cameraPosition_.y = std::fminf(-1, cameraPosition_.y);
     }
     renderEngine.SetCamera(cameraPosition_, Float3(0,cameraPosition_.y + 1,cameraPosition_.z), Float3(0,0,1));
+//    glClearColor(0.0, 0.0, 0.0, 0.0);
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    renderEngine.Render(*testModel_);
 //    ImGui::Text("Hello, world!");
-    renderEngine.Render(*testModel_);
+    renderEngine.Clear();
+    renderEngine.RenderToGBuffer(*testModel_);
+    renderEngine.SubmitToScreen();
 }
 };

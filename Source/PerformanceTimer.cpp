@@ -24,7 +24,7 @@ void PerformanceTimer::Tick() {
     frames++;
     seconds += deltaTime_;
     if (seconds >= 1.0f) {
-//        std::cerr << "\r" << frames / seconds;
+        std::cerr << "\r" << frames / seconds;
         frames = 0;
         seconds = 0.0f;
     }

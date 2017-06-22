@@ -41,10 +41,10 @@ Material::~Material()
     glDeleteTextures(static_cast<GLsizei>(textureIDList_.size()), textureIDList_.data());
 }
 
-void Material::Use()
+void Material::Use(int unit)
 {
     for (int i = 0; i < textureIDList_.size(); i++) {
-        glActiveTexture(3 + GL_TEXTURE0 + i);
+        glActiveTexture(unit + GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textureIDList_[i]);
     }
 }

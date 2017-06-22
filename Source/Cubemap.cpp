@@ -29,13 +29,13 @@ Cubemap::Cubemap(const std::string& name)
             glTexStorage2D(GL_TEXTURE_CUBE_MAP, maxMipLevel_ + 1, GL_RGB16F, width, height);
         }
         std::vector<half> halfData(width * height * header[2]);
-        std::vector<float> floatData(width * height * header[2]);
+//        std::vector<float> floatData(width * height * header[2]);
         for (GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face < GL_TEXTURE_CUBE_MAP_POSITIVE_X + 6; face++) {
             file.read(reinterpret_cast<char*>(halfData.data()), halfData.size()*sizeof(half));
-            for (int i = 0; i < floatData.size(); i++) {
-                floatData[i] = (float)halfData[i];
-            }
-            glTexSubImage2D(face, level, 0, 0, width, height, GL_RGB, GL_FLOAT, floatData.data());
+//            for (int i = 0; i < floatData.size(); i++) {
+//                floatData[i] = (float)halfData[i];
+//            }
+            glTexSubImage2D(face, level, 0, 0, width, height, GL_RGB, GL_HALF_FLOAT, halfData.data());
         }
         width /= 2;
         height /= 2;

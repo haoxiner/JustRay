@@ -13,7 +13,7 @@ public:
     Material(const std::string& name, float texCoordScale = 1.0f);
     ~Material();
     void Set(bool useTexture, float r, float g, float b, float metallic, float roughness, float texCoordScale);
-    void Use();
+    void Use(int unit);
 private:
     void LoadTexture(GLenum internalFormat, GLenum format, GLenum type, unsigned int width, unsigned int height, void* data);
     std::vector<GLuint> textureIDList_;

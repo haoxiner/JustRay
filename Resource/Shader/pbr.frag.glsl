@@ -8,13 +8,9 @@ precision highp samplerCube;
 #define INV_PI (1.0/PI)
 #define TWO_PI (2.0 * PI)
 
-in vec3 position;
-in vec3 tangent;
-in vec3 bitangent;
-in vec3 normal;
 in vec2 texCoord;
-
 out vec4 fragColor;
+
 layout(std140) uniform PerEngineBuffer
 {
 	mat4 viewToProjection;
@@ -24,17 +20,15 @@ layout(std140) uniform PerFrameBuffer
 	vec4 cameraPosition;
 	mat4 worldToView;
 };
-layout(std140) uniform PerObjectBuffer
-{
-	mat4 modelToWorld;
-	vec4 material[2];
-};
 
 uniform sampler2D dfgMap;
 uniform samplerCube diffuseEnvmap;
 uniform samplerCube specularEnvmap;
-uniform sampler2D baseColorMap;
-uniform sampler2D roughnessMap;
+
+uniform sampler2D gBuffer0;
+uniform sampler2D gBuffer1;
+uniform sampler2D gBuffer2;
+uniform sampler2D depthBuffer;
 
 float Saturate(float value)
 {
@@ -235,42 +229,48 @@ float Fr_DisneyDiffuse(
 	return lightScatter * viewScatter * energyFactor;
 }
 
+vec3 DecodeNormal(vec2 v)
+{
+    vec2 enc = v * 2.0 - vec2(1.0);
+    vec2 fenc = enc*4.0-vec2(2.0);
+    float f = dot(fenc,fenc);
+    float g = sqrt(1.0-f/4.0);
+    vec3 n;
+    n.xy = fenc*g;
+    n.z = 1.0-f/2.0;
+    return n;
+}
 
 void main()
 {
-	fragColor = vec4(0.0);
+    fragColor = vec4(0.0);
+    
+    float z = texture(depthBuffer, texCoord).r * 2.0 - 1.0;
+    vec4 vProjectedPos = vec4(texCoord*2.0 - vec2(1.0), z, 1.0);
+    vec4 vPositionVS = inverse(viewToProjection) * vProjectedPos;
+    vec3 position = (inverse(worldToView) * (vPositionVS.xyzw / vPositionVS.w)).xyz;
+    
+    if (z > 0.999) {
+        fragColor = SampleCubemapForZup(specularEnvmap, position - cameraPosition.xyz, 0.0);
+        return;
+    }
+    
 	vec3 eye = cameraPosition.xyz;
 	vec3 L = normalize(eye - position);
 	vec3 V = normalize(eye - position);
-	vec3 N = normalize(normal);
+	
+    vec4 g0 = texture(gBuffer0, texCoord);
+    vec3 g1 = texture(gBuffer1, texCoord).xyz;
+    vec2 g2 = texture(gBuffer2, texCoord).xy;
     
-    // material[0].x: 0->no texture, 1->texture
-    // material[0].y: scale texcoord
-    // material[0].z: mettalic
-    // material[1].xyz: basecolor
-    // material[1].w: roughness
-    
-    vec3 baseColor = vec3(1.0);
-	float roughness = 1.0;
-	float metallic = 1.0;
-    
-    if (material[0].x > 0.0) {
-        vec2 uv = texCoord * material[0].y;
-        vec4 baseColorAndMetallic = texture(baseColorMap, uv);
-        vec4 normalAndRoughness = texture(roughnessMap, uv);
-        
-        baseColor = baseColorAndMetallic.rgb;
-        metallic = baseColorAndMetallic.a;
-        roughness = normalAndRoughness.a;
-        
-        vec3 T = normalize(tangent);
-        vec3 B = normalize(bitangent);
-        mat3 TBN = mat3(T,B,N);
-        N = TBN * normalize(normalAndRoughness.xyz * 2.0 - vec3(1.0));
-    }
-    metallic *= material[0].z;
-    baseColor *= material[1].xyz;
-    roughness *= material[1].w;
+//    vec3 N = DecodeNormal(g1.xy);
+//    vec3 N = normalize(g1.xyz * 2.0 - vec3(1.0));
+    vec3 N = g1.xyz;
+    float roughness = g2.x;
+
+    vec3 baseColor = g0.xyz;
+    float metallic = g0.w;
+
     
     float alphaG = roughness * roughness;
 
@@ -311,6 +311,4 @@ void main()
 	fragColor.w = 1.0;
     
 //    fragColor.xyz = SampleCubemapForZup(specularEnvmap, reflect(-V, N), 0.0).xyz;
-//    vec3 test = texture(roughnessMap, texCoord*4.0).rgb;
-//    fragColor.xyz = test;
 }
