@@ -1,0 +1,10 @@
+{
+	"vertex": {
+		"offset": 0,
+		"count": 31495
+	},
+	"index": {
+        "offset": 881860,
+		"count": 183264
+	}
+}
