@@ -29,6 +29,7 @@ uniform sampler2D gBuffer0;
 uniform sampler2D gBuffer1;
 uniform sampler2D gBuffer2;
 uniform sampler2D depthBuffer;
+uniform sampler2D occlusionBuffer;
 
 float Saturate(float value)
 {
@@ -229,6 +230,11 @@ float Fr_DisneyDiffuse(
 	return lightScatter * viewScatter * energyFactor;
 }
 
+float ComputeSpecularOcclusion(float NdotV, float AO, float roughness)
+{
+    return Saturate(pow(NdotV + AO, exp2(-16.0f * roughness - 1.0f)) - 1.0f + AO);
+}
+
 vec3 DecodeNormal(vec2 enc)
 {
     vec2 fenc = enc*4.0-vec2(2.0);
@@ -250,9 +256,9 @@ void main()
         discard;
     }
     
-    vec4 vProjectedPos = vec4(texCoord*2.0 - vec2(1.0), z, 1.0);
-    vec4 vPositionVS = inverse(viewToProjection) * vProjectedPos;
-    vec3 position = (inverse(worldToView) * (vPositionVS.xyzw / vPositionVS.w)).xyz;
+    vec4 projectedPosition = vec4(texCoord*2.0 - vec2(1.0), z, 1.0);
+    vec4 positionInCameraSpace = inverse(viewToProjection) * projectedPosition;
+    vec3 position = (inverse(worldToView) * (positionInCameraSpace.xyzw / positionInCameraSpace.w)).xyz;
     
 	vec3 eye = cameraPosition.xyz;
 	vec3 L = normalize(eye - position);
@@ -267,6 +273,10 @@ void main()
     vec3 N = g2.xyz * 2.0 - vec3(1.0);
     float roughness = g1.x;
     float metallic = g1.y;
+    
+//    baseColor = vec3(1.0);
+//    roughness = 0.0;
+//    metallic = 1.0;
 
     float alphaG = roughness * roughness;
 
@@ -279,7 +289,7 @@ void main()
 	float NdotV = Saturate(dot(N, V));
 	vec3 specular = EvaluateIBLSpecular(N, V, NdotV, alphaG, roughness, f0, f90);
 	vec3 diffuse = diffuseColor * INV_PI * EvaluateIBLDiffuse(N, V, NdotV, alphaG);
-	fragColor.xyz += (diffuse + specular);
+	fragColor.xyz += (diffuse + specular) * (ComputeSpecularOcclusion(NdotV, texture(occlusionBuffer, texCoord).r, alphaG));
 
 ////////////////////// Analytic Light ///////////////////////
 	NdotV = NdotV + 1e-5; // avoid artifact
@@ -306,5 +316,6 @@ void main()
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
 	fragColor.w = 1.0;
     
+//    fragColor.xyz = vec3(ComputeSpecularOcclusion(NdotV, texture(occlusionBuffer, texCoord).r, alphaG));
 //    fragColor.xyz = SampleCubemapForZup(specularEnvmap, reflect(-V, N), 0.0).xyz;
 }
