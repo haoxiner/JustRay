@@ -52,6 +52,12 @@ using Matrix4x4 = glm::mat4;
 using Matrix3x3 = glm::mat3;
 
 /*
+*/
+inline float Lerp(float x, float y, float t)
+{
+    return x + t * (y - x);
+}
+/*
     normalize
 */
 inline Quaternion Normalize(const Quaternion& quaternion)
@@ -59,6 +65,10 @@ inline Quaternion Normalize(const Quaternion& quaternion)
     return Quaternion(glm::normalize(quaternion));
 }
 inline Float3 Normalize(const Float3& v)
+{
+    return glm::normalize(v);
+}
+inline Float4 Normalize(const Float4& v)
 {
     return glm::normalize(v);
 }

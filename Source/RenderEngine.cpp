@@ -58,6 +58,7 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     SetupConstantBuffers();
     SetupPreIntegratedData();
     SetupGBuffer();
+    ssao_.reset(new SSAO(xResolution, yResolution));
 }
 void RenderEngine::SetEnvironment(const std::string &name)
 {
@@ -105,8 +106,8 @@ void RenderEngine::Render(const ModelGroup& modelGroup)
 void RenderEngine::Prepare()
 {
     gBuffer_->UseAsRenderTarget();
-//    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     texture2DSampler_->UseRepeatSampler(0);
     texture2DSampler_->UseRepeatSampler(1);
     glUseProgram(gBufferShader_);
@@ -132,12 +133,15 @@ void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup)
 }
 void RenderEngine::SubmitToScreen()
 {
+    ssao_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferID_);
+    glClear(GL_COLOR_BUFFER_BIT);
     texture2DSampler_->UseDefaultSampler(0);
     texture2DSampler_->UsePointSampler(3);
     texture2DSampler_->UsePointSampler(4);
     texture2DSampler_->UsePointSampler(5);
     texture2DSampler_->UsePointSampler(6);
+    texture2DSampler_->UsePointSampler(7);
     glBindVertexArray(squareVertexArrayID_);
     glUseProgram(pbrShader_);
     glActiveTexture(GL_TEXTURE0);
@@ -145,13 +149,13 @@ void RenderEngine::SubmitToScreen()
     diffuseCubemap_->Bind(1);
     specularCubemap_->Bind(2);
     gBuffer_->UseAsTextures(3);
-
+    ssao_->UseOcclusionBufferAsTexture(7);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 void RenderEngine::SetupShader()
 {
     auto stationaryVertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Stationary.vert.glsl"), GL_VERTEX_SHADER);
-    auto deferredFragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/deferred.frag.glsl"), GL_FRAGMENT_SHADER);
+    auto deferredFragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/GBuffer.frag.glsl"), GL_FRAGMENT_SHADER);
     gBufferShader_ = ShaderProgram::CompileShader(stationaryVertexShaderID, deferredFragmentShaderID);
     
     glDeleteShader(stationaryVertexShaderID);
@@ -161,7 +165,7 @@ void RenderEngine::SetupShader()
     glUniform1i(glGetUniformLocation(gBufferShader_, "baseColorMap"), 0);
     glUniform1i(glGetUniformLocation(gBufferShader_, "roughnessMap"), 1);
     
-    auto screenVertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/screen.vert.glsl"), GL_VERTEX_SHADER);
+    auto screenVertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Screen.vert.glsl"), GL_VERTEX_SHADER);
     auto pbrFragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/PBR.frag.glsl"), GL_FRAGMENT_SHADER);
     pbrShader_ = ShaderProgram::CompileShader(screenVertexShaderID, pbrFragmentShaderID);
     
@@ -176,6 +180,7 @@ void RenderEngine::SetupShader()
     glUniform1i(glGetUniformLocation(pbrShader_, "gBuffer1"), 4);
     glUniform1i(glGetUniformLocation(pbrShader_, "gBuffer2"), 5);
     glUniform1i(glGetUniformLocation(pbrShader_, "depthBuffer"), 6);
+    glUniform1i(glGetUniformLocation(pbrShader_, "occlusionBuffer"), 7);
     
     glUseProgram(0);
     
@@ -209,28 +214,29 @@ void RenderEngine::SetupConstantBuffers()
     perObjectBuffer.material[1] = Float4(1.0);
     
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_ENGINE_BUFFER]);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerEngineBuffer), &staticConstantBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerEngineBuffer), &staticConstantBuffer, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(PerFrameBuffer), &perFrameBuffer, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectBuffer), &perObjectBuffer, GL_DYNAMIC_DRAW);
     
-    glUseProgram(gBufferShader_);
     for (int i = 0; i < bufferList_.size(); i++) {
         glBindBufferBase(GL_UNIFORM_BUFFER, i, bufferList_[i]);
+    }
+    
+    glUseProgram(gBufferShader_);
+    for (int i = 0; i < bufferList_.size(); i++) {
         unsigned int blockIndex = glGetUniformBlockIndex(gBufferShader_, BUFFER_NAMES[i].c_str());
         glUniformBlockBinding(gBufferShader_, blockIndex, i);
     }
     glUseProgram(pbrShader_);
     for (int i = 0; i < bufferList_.size() - 1; i++) {
-        glBindBufferBase(GL_UNIFORM_BUFFER, i, bufferList_[i]);
         unsigned int blockIndex = glGetUniformBlockIndex(pbrShader_, BUFFER_NAMES[i].c_str());
         glUniformBlockBinding(pbrShader_, blockIndex, i);
     }
     
     glUseProgram(pbrShaderForStationaryEntity_);
     for (int i = 0; i < bufferList_.size(); i++) {
-        glBindBufferBase(GL_UNIFORM_BUFFER, i, bufferList_[i]);
         unsigned int blockIndex = glGetUniformBlockIndex(pbrShaderForStationaryEntity_, BUFFER_NAMES[i].c_str());
         glUniformBlockBinding(pbrShaderForStationaryEntity_, blockIndex, i);
     }

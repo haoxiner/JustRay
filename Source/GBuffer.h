@@ -27,6 +27,8 @@ public:
     void UseAsTextures(int unitOffset);
     void UseNormalBufferAsTexture(int unit);
     void UseDepthBufferAsTexture(int unit);
+    GLuint GetNormalBufferID() {return gBuffer2_;}
+    GLuint GetDepthBufferID() {return depthBufferID_;}
 private:
     GLuint deferredFrameBufferID_;
     GLuint gBuffer0_;

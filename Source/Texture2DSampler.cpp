@@ -33,9 +33,16 @@ Texture2DSampler::Texture2DSampler()
     glSamplerParameteri(pointSamplerID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glSamplerParameteri(pointSamplerID_, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glSamplerParameteri(pointSamplerID_, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
+    glGenSamplers(1, &pointRepeatSamplerID_);
+    glSamplerParameteri(pointRepeatSamplerID_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glSamplerParameteri(pointRepeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glSamplerParameteri(pointRepeatSamplerID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glSamplerParameteri(pointRepeatSamplerID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 Texture2DSampler::~Texture2DSampler()
 {
+    glDeleteSamplers(1, &pointRepeatSamplerID_);
     glDeleteSamplers(1, &pointSamplerID_);
     glDeleteSamplers(1, &repeatSamplerID_);
     glDeleteSamplers(1, &defaultSamplerID_);
@@ -51,5 +58,9 @@ void Texture2DSampler::UseRepeatSampler(int unit)
 void Texture2DSampler::UsePointSampler(int unit)
 {
     glBindSampler(unit, pointSamplerID_);
+}
+void Texture2DSampler::UsePointRepeatSampler(int unit)
+{
+    glBindSampler(unit, pointRepeatSamplerID_);
 }
 };

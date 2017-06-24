@@ -18,10 +18,12 @@ public:
     void UseDefaultSampler(int unit);
     void UseRepeatSampler(int unit);
     void UsePointSampler(int unit);
+    void UsePointRepeatSampler(int unit);
 private:
     GLuint defaultSamplerID_;
     GLuint repeatSamplerID_;
     GLuint pointSamplerID_;
+    GLuint pointRepeatSamplerID_;
 };
 }
 
