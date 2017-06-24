@@ -229,9 +229,8 @@ float Fr_DisneyDiffuse(
 	return lightScatter * viewScatter * energyFactor;
 }
 
-vec3 DecodeNormal(vec2 v)
+vec3 DecodeNormal(vec2 enc)
 {
-    vec2 enc = v * 2.0 - vec2(1.0);
     vec2 fenc = enc*4.0-vec2(2.0);
     float f = dot(fenc,fenc);
     float g = sqrt(1.0-f/4.0);
@@ -246,32 +245,29 @@ void main()
     fragColor = vec4(0.0);
     
     float z = texture(depthBuffer, texCoord).r * 2.0 - 1.0;
+    
+    if (z > 0.999) {
+        discard;
+    }
+    
     vec4 vProjectedPos = vec4(texCoord*2.0 - vec2(1.0), z, 1.0);
     vec4 vPositionVS = inverse(viewToProjection) * vProjectedPos;
     vec3 position = (inverse(worldToView) * (vPositionVS.xyzw / vPositionVS.w)).xyz;
-    
-    if (z > 0.999) {
-        fragColor = SampleCubemapForZup(specularEnvmap, position - cameraPosition.xyz, 0.0);
-        return;
-    }
     
 	vec3 eye = cameraPosition.xyz;
 	vec3 L = normalize(eye - position);
 	vec3 V = normalize(eye - position);
 	
     vec4 g0 = texture(gBuffer0, texCoord);
-    vec3 g1 = texture(gBuffer1, texCoord).xyz;
-    vec2 g2 = texture(gBuffer2, texCoord).xy;
+    vec4 g1 = texture(gBuffer1, texCoord);
+    vec4 g2 = texture(gBuffer2, texCoord);
     
-//    vec3 N = DecodeNormal(g1.xy);
-//    vec3 N = normalize(g1.xyz * 2.0 - vec3(1.0));
-    vec3 N = g1.xyz;
-    float roughness = g2.x;
-
     vec3 baseColor = g0.xyz;
-    float metallic = g0.w;
+//    vec3 N = (inverse(worldToView) * vec4(DecodeNormal(g1.xy), 0.0)).xyz;
+    vec3 N = g2.xyz * 2.0 - vec3(1.0);
+    float roughness = g1.x;
+    float metallic = g1.y;
 
-    
     float alphaG = roughness * roughness;
 
 	vec3 reflectance = vec3(0.5);
@@ -304,7 +300,7 @@ void main()
 	// fragColor.xyz += vec3(10000, 10000, 10000) * (Fr + diffuseColor * Fd) / dot(pointLight, pointLight);
 //////////////////////////////////////////////////////////////////
 	
-	float exposure = 1.0;
+	float exposure = 3.5;
 	fragColor *= exposure;
 	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
