@@ -26,7 +26,7 @@ Material::Material(const std::string& name, float texCoordScale)
     baseColorFile.close();
     // basecolor encoded in gamma space, metallic in linear space
     LoadTexture(GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE, header[0], header[1], baseColorMap.data());
-    
+    // rgb: normalmap a: roughness
     std::ifstream roughnessFile(directory + "roughness.rgba8", std::ios::binary);
     roughnessFile.read(reinterpret_cast<char*>(header), sizeof(header));
     std::vector<unsigned char> roughnessMap(header[0] * header[1] * header[2]);

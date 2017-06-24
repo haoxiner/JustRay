@@ -31,6 +31,8 @@
 		22529AB01EF5818600FDC476 /* ShaderProgram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529AA41EF5818600FDC476 /* ShaderProgram.cpp */; };
 		22529AB11EF5818600FDC476 /* Vertex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22529AA61EF5818600FDC476 /* Vertex.cpp */; };
 		22739BF21EFA299000DBD98D /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22739BF01EFA299000DBD98D /* Entity.cpp */; };
+		229848C51EFE0A0400039895 /* GBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 229848C31EFE0A0400039895 /* GBuffer.cpp */; };
+		229848C91EFE1B0300039895 /* Texture2DSampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 229848C71EFE1B0300039895 /* Texture2DSampler.cpp */; };
 		22C7C7351EF4E046009DA6B2 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22C7C7341EF4E046009DA6B2 /* AVFoundation.framework */; };
 		22C7C7401EF4E1E4009DA6B2 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22C7C7381EF4E1E4009DA6B2 /* imgui_demo.cpp */; };
 		22C7C7411EF4E1E4009DA6B2 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22C7C7391EF4E1E4009DA6B2 /* imgui_draw.cpp */; };
@@ -119,6 +121,10 @@
 		22529AA71EF5818600FDC476 /* Vertex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vertex.h; path = Source/Vertex.h; sourceTree = "<group>"; };
 		22739BF01EFA299000DBD98D /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = Source/Entity.cpp; sourceTree = "<group>"; };
 		22739BF11EFA299000DBD98D /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = Source/Entity.h; sourceTree = "<group>"; };
+		229848C31EFE0A0400039895 /* GBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GBuffer.cpp; path = Source/GBuffer.cpp; sourceTree = "<group>"; };
+		229848C41EFE0A0400039895 /* GBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GBuffer.h; path = Source/GBuffer.h; sourceTree = "<group>"; };
+		229848C71EFE1B0300039895 /* Texture2DSampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Texture2DSampler.cpp; path = Source/Texture2DSampler.cpp; sourceTree = "<group>"; };
+		229848C81EFE1B0300039895 /* Texture2DSampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Texture2DSampler.h; path = Source/Texture2DSampler.h; sourceTree = "<group>"; };
 		22C7C7341EF4E046009DA6B2 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		22C7C7371EF4E1E4009DA6B2 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ThirdParty/imgui/imconfig.h; sourceTree = "<group>"; };
 		22C7C7381EF4E1E4009DA6B2 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = ThirdParty/imgui/imgui_demo.cpp; sourceTree = "<group>"; };
@@ -257,6 +263,24 @@
 			name = Platform;
 			sourceTree = "<group>";
 		};
+		229848BF1EFE09EA00039895 /* Deferred */ = {
+			isa = PBXGroup;
+			children = (
+				229848C31EFE0A0400039895 /* GBuffer.cpp */,
+				229848C41EFE0A0400039895 /* GBuffer.h */,
+			);
+			name = Deferred;
+			sourceTree = "<group>";
+		};
+		229848C61EFE1AEF00039895 /* Sampler */ = {
+			isa = PBXGroup;
+			children = (
+				229848C71EFE1B0300039895 /* Texture2DSampler.cpp */,
+				229848C81EFE1B0300039895 /* Texture2DSampler.h */,
+			);
+			name = Sampler;
+			sourceTree = "<group>";
+		};
 		22C7C7361EF4E1D1009DA6B2 /* imgui */ = {
 			isa = PBXGroup;
 			children = (
@@ -278,6 +302,8 @@
 		22C7C74A1EF524C1009DA6B2 /* RenderEngine */ = {
 			isa = PBXGroup;
 			children = (
+				229848C61EFE1AEF00039895 /* Sampler */,
+				229848BF1EFE09EA00039895 /* Deferred */,
 				221770DA1EF8064500CB1661 /* Cubemap.cpp */,
 				221770DB1EF8064500CB1661 /* Cubemap.h */,
 				22739BF11EFA299000DBD98D /* Entity.h */,
@@ -486,9 +512,11 @@
 				223EA8B71EF627EF0077DB54 /* Application.cpp in Sources */,
 				223EA8B31EF6225C0077DB54 /* PerformanceTimer.cpp in Sources */,
 				221770DC1EF8064500CB1661 /* Cubemap.cpp in Sources */,
+				229848C91EFE1B0300039895 /* Texture2DSampler.cpp in Sources */,
 				22C7C7411EF4E1E4009DA6B2 /* imgui_draw.cpp in Sources */,
 				223EA8BE1EF643D70077DB54 /* Material.cpp in Sources */,
 				22C7C7421EF4E1E4009DA6B2 /* imgui.cpp in Sources */,
+				229848C51EFE0A0400039895 /* GBuffer.cpp in Sources */,
 				22C7C7401EF4E1E4009DA6B2 /* imgui_demo.cpp in Sources */,
 				22529AAF1EF5818600FDC476 /* RenderEngine.cpp in Sources */,
 				223EA8C71EF6A7B30077DB54 /* ResourceLoader.cpp in Sources */,

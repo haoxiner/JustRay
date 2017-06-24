@@ -17,7 +17,7 @@ void ModelViewer::Startup()
     entity_->rotation_ = Quaternion(0,0,0,1);
     testModel_->entities.emplace_back(entity_);
     modelToWorld_ = Matrix4x4(1.0f);
-    cameraPosition_ = Float3(0,-3,1);
+    cameraPosition_ = Float3(0,3,1);
 }
 void ModelViewer::Shutdown()
 {
@@ -36,7 +36,7 @@ void ModelViewer::Update(float deltaTime, const Input& input, RenderEngine& rend
             v0.y = input.GetY();
             initRotation_ = glm::mat4_cast(entity_->rotation_);
         } else {
-            float xRot = -PI * (input.GetY() - v0.y);
+            float xRot = PI * (input.GetY() - v0.y);
             float zRot = -PI * (input.GetX() - v0.x);
             Matrix4x4 rot;
             rot = glm::rotate(rot, xRot, glm::vec3(1,0,0));
@@ -47,16 +47,13 @@ void ModelViewer::Update(float deltaTime, const Input& input, RenderEngine& rend
         rotating_ = false;
     }
     if (input.Pinch()) {
-        cameraPosition_.y += input.Pinch() * 10;
-        cameraPosition_.y = std::fminf(-1, cameraPosition_.y);
+        cameraPosition_.y -= input.Pinch() * 10;
+        cameraPosition_.y = std::fmaxf(1, cameraPosition_.y);
     }
-    renderEngine.SetCamera(cameraPosition_, Float3(0,cameraPosition_.y + 1,cameraPosition_.z), Float3(0,0,1));
-//    glClearColor(0.0, 0.0, 0.0, 0.0);
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//    renderEngine.Render(*testModel_);
-//    ImGui::Text("Hello, world!");
-    renderEngine.Clear();
-    renderEngine.RenderToGBuffer(*testModel_);
+    renderEngine.SetCamera(cameraPosition_, Float3(0,cameraPosition_.y - 1,cameraPosition_.z), Float3(0,0,1));
+
+    renderEngine.Prepare();
+    renderEngine.Submit(*testModel_);
     renderEngine.SubmitToScreen();
 }
 };

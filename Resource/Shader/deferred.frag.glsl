@@ -9,8 +9,8 @@ in vec3 normal;
 in vec2 texCoord;
 
 layout (location = 0) out vec4 gBuffer0;
-layout (location = 1) out vec3 gBuffer1;
-layout (location = 2) out vec2 gBuffer2;
+layout (location = 1) out vec4 gBuffer1;
+layout (location = 2) out vec4 gBuffer2;
 
 layout(std140) uniform PerEngineBuffer
 {
@@ -33,7 +33,7 @@ uniform sampler2D roughnessMap;
 vec2 EncodeNormal(vec3 n)
 {
     float p = sqrt(n.z*8.0+8.0);
-    return vec2(n.xy/p + vec2(0.5)) * 0.5 + vec2(0.5);
+    return vec2(n.xy/p + vec2(0.5));
 }
 
 void main()
@@ -68,8 +68,9 @@ void main()
 //    N = normalize(normal);
     
     
-    gBuffer0 = vec4(baseColor, metallic);
-//    gBuffer1 = vec4(EncodeNormal(N),roughness, 0.0);
-    gBuffer1 = N;
-    gBuffer2 = vec2(roughness);
+    gBuffer0 = vec4(baseColor, 1.0);
+//    gBuffer1 = vec4(EncodeNormal((worldToView * vec4(normalize(N),0.0)).xyz), roughness, 0.0);
+//    gBuffer1 = vec4(N,0.0);
+    gBuffer1 = vec4(roughness, metallic, 0.0, 0.0);
+    gBuffer2 = vec4(N * 0.5 + vec3(0.5), 0.0);
 }

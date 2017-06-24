@@ -53,34 +53,7 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     glFrontFace(GL_CCW);
 
     glViewport(0, 0, xResolution, yResolution);
-
-    glGenSamplers(1, &defaultSamplerID_);
-    glSamplerParameteri(defaultSamplerID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glSamplerParameteri(defaultSamplerID_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glSamplerParameteri(defaultSamplerID_, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(defaultSamplerID_, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    
-    glGenSamplers(1, &repeatSamplerID_);
-    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MIN_LOD, 0);
-    glSamplerParameteri(repeatSamplerID_, GL_TEXTURE_MAX_LOD, 4);
-    float aniso = 0.0f;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
-    glSamplerParameterf(repeatSamplerID_, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
-    
-    glGenSamplers(1, &pointSamplerID_);
-    glSamplerParameteri(pointSamplerID_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glSamplerParameteri(pointSamplerID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glSamplerParameteri(pointSamplerID_, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(pointSamplerID_, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//    glBindSampler(0, defaultSamplerID_);
-//    glBindSampler(3, repeatSamplerID_);
-//    glBindSampler(4, repeatSamplerID_);
-//    glBindSampler(5, repeatSamplerID_);
-
+    texture2DSampler_.reset(new Texture2DSampler);
     SetupShader();
     SetupConstantBuffers();
     SetupPreIntegratedData();
@@ -99,38 +72,13 @@ void RenderEngine::SetCamera(const Float3 &position, const Float3 &focus, const 
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perFrameBuffer), &perFrameBuffer);
 }
-
-void RenderEngine::RenderToGBuffer(const ModelGroup& modelGroup)
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, deferredFrameBufferID_);
-    
-    glBindSampler(0, repeatSamplerID_);
-    glBindSampler(1, repeatSamplerID_);
-    glUseProgram(deferredShader_);
-    glBindVertexArray(modelGroup.vertexArrayID_);
-    PerObjectBuffer perObjectBuffer;
-    for (auto&& entity : modelGroup.entities) {
-        perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
-        glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
-        for (const auto& model : modelGroup.models_) {
-            int indexOffset = std::get<0>(model);
-            int numOfIndex = std::get<1>(model);
-            auto& material = std::get<2>(model);
-            material->Use(0);
-            perObjectBuffer.material[0] = material->custom[0];
-            perObjectBuffer.material[1] = material->custom[1];
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
-            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
-        }
-    }
-}
 void RenderEngine::Render(const ModelGroup& modelGroup)
 {
-    glBindSampler(0, defaultSamplerID_);
-    glBindSampler(3, repeatSamplerID_);
-    glBindSampler(4, repeatSamplerID_);
-    glBindSampler(5, repeatSamplerID_);
-
+    texture2DSampler_->UseDefaultSampler(0);
+    texture2DSampler_->UseRepeatSampler(3);
+    texture2DSampler_->UseRepeatSampler(4);
+    texture2DSampler_->UseRepeatSampler(5);
+    
     glUseProgram(pbrShaderForStationaryEntity_);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, dfgTextureID_);
@@ -154,59 +102,64 @@ void RenderEngine::Render(const ModelGroup& modelGroup)
         }
     }
 }
-void RenderEngine::Clear()
+void RenderEngine::Prepare()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, deferredFrameBufferID_);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    gBuffer_->UseAsRenderTarget();
+//    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    texture2DSampler_->UseRepeatSampler(0);
+    texture2DSampler_->UseRepeatSampler(1);
+    glUseProgram(gBufferShader_);
+}
+void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup)
+{
+    glBindVertexArray(modelGroup.vertexArrayID_);
+    PerObjectBuffer perObjectBuffer;
+    for (auto&& entity : modelGroup.entities) {
+        perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
+        glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
+        for (const auto& model : modelGroup.models_) {
+            int indexOffset = std::get<0>(model);
+            int numOfIndex = std::get<1>(model);
+            auto& material = std::get<2>(model);
+            material->Use(0);
+            perObjectBuffer.material[0] = material->custom[0];
+            perObjectBuffer.material[1] = material->custom[1];
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
+            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+        }
+    }
 }
 void RenderEngine::SubmitToScreen()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferID_);
-    glBindSampler(0, defaultSamplerID_);
-
-    glBindSampler(3, pointSamplerID_);
-    glBindSampler(4, pointSamplerID_);
-    glBindSampler(5, pointSamplerID_);
-    glBindSampler(6, pointSamplerID_);
-
-
+    texture2DSampler_->UseDefaultSampler(0);
+    texture2DSampler_->UsePointSampler(3);
+    texture2DSampler_->UsePointSampler(4);
+    texture2DSampler_->UsePointSampler(5);
+    texture2DSampler_->UsePointSampler(6);
     glBindVertexArray(squareVertexArrayID_);
-
     glUseProgram(pbrShader_);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, dfgTextureID_);
     diffuseCubemap_->Bind(1);
     specularCubemap_->Bind(2);
-    
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, gBuffer0_);
-    
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, gBuffer1_);
-    
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, gBuffer2_);
-    
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, depthBufferID_);
-    
+    gBuffer_->UseAsTextures(3);
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 void RenderEngine::SetupShader()
 {
     auto stationaryVertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Stationary.vert.glsl"), GL_VERTEX_SHADER);
     auto deferredFragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/deferred.frag.glsl"), GL_FRAGMENT_SHADER);
-    deferredShader_ = ShaderProgram::CompileShader(stationaryVertexShaderID, deferredFragmentShaderID);
+    gBufferShader_ = ShaderProgram::CompileShader(stationaryVertexShaderID, deferredFragmentShaderID);
     
     glDeleteShader(stationaryVertexShaderID);
     glDeleteShader(deferredFragmentShaderID);
     
-    glUseProgram(deferredShader_);
-    glUniform1i(glGetUniformLocation(deferredShader_, "baseColorMap"), 0);
-    glUniform1i(glGetUniformLocation(deferredShader_, "roughnessMap"), 1);
-    
-    
+    glUseProgram(gBufferShader_);
+    glUniform1i(glGetUniformLocation(gBufferShader_, "baseColorMap"), 0);
+    glUniform1i(glGetUniformLocation(gBufferShader_, "roughnessMap"), 1);
     
     auto screenVertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/screen.vert.glsl"), GL_VERTEX_SHADER);
     auto pbrFragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/PBR.frag.glsl"), GL_FRAGMENT_SHADER);
@@ -252,7 +205,7 @@ void RenderEngine::SetupConstantBuffers()
     perFrameBuffer.worldToView = glm::lookAtRH(Float3(0,-3,1), Float3(0,0,1), Float3(0,0,1));
     PerObjectBuffer perObjectBuffer;
     perObjectBuffer.modelToWorld = Matrix4x4(1.0);
-    perObjectBuffer.material[0] = Float4(2.0,1.0,1.0,1.0);
+    perObjectBuffer.material[0] = Float4(1.0,1.0,1.0,1.0);
     perObjectBuffer.material[1] = Float4(1.0);
     
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_ENGINE_BUFFER]);
@@ -262,11 +215,11 @@ void RenderEngine::SetupConstantBuffers()
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectBuffer), &perObjectBuffer, GL_DYNAMIC_DRAW);
     
-    glUseProgram(deferredShader_);
+    glUseProgram(gBufferShader_);
     for (int i = 0; i < bufferList_.size(); i++) {
         glBindBufferBase(GL_UNIFORM_BUFFER, i, bufferList_[i]);
-        unsigned int blockIndex = glGetUniformBlockIndex(deferredShader_, BUFFER_NAMES[i].c_str());
-        glUniformBlockBinding(deferredShader_, blockIndex, i);
+        unsigned int blockIndex = glGetUniformBlockIndex(gBufferShader_, BUFFER_NAMES[i].c_str());
+        glUniformBlockBinding(gBufferShader_, blockIndex, i);
     }
     glUseProgram(pbrShader_);
     for (int i = 0; i < bufferList_.size() - 1; i++) {
@@ -301,35 +254,8 @@ void RenderEngine::SetupPreIntegratedData()
 }
 void RenderEngine::SetupGBuffer()
 {
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &screenFrameBufferID_);
-    
-    glGenFramebuffers(1, &deferredFrameBufferID_);
-    glBindFramebuffer(GL_FRAMEBUFFER, deferredFrameBufferID_);
-    
-    glGenTextures(1, &gBuffer0_);
-    glBindTexture(GL_TEXTURE_2D, gBuffer0_);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, xResolution_, yResolution_);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gBuffer0_, 0);
-    
-    glGenTextures(1, &gBuffer1_);
-    glBindTexture(GL_TEXTURE_2D, gBuffer1_);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, xResolution_, yResolution_);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gBuffer1_, 0);
-    
-    glGenTextures(1, &gBuffer2_);
-    glBindTexture(GL_TEXTURE_2D, gBuffer2_);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG8, xResolution_, yResolution_);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gBuffer2_, 0);
-    
-    glGenTextures(1, &depthBufferID_);
-    glBindTexture(GL_TEXTURE_2D, depthBufferID_);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, xResolution_, yResolution_);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBufferID_, 0);
-    
-    GLenum frameBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-    glDrawBuffers(3, frameBuffers);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferID_);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&screenFrameBufferID_));
+    gBuffer_.reset(new GBuffer(xResolution_, yResolution_));
 
     float square[] = {
         -1.0f, +1.0f, 0.0f, 1.0f,
