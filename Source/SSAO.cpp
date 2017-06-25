@@ -23,8 +23,8 @@ struct SSAOUniformBuffer
 };
 SSAO::SSAO(int xResolution, int yResolution)
 {
-    const int width = xResolution / 1;
-    const int height = yResolution / 1;
+    width_ = xResolution / 2;
+    height_ = yResolution / 2;
     
     std::uniform_real_distribution<float> randomFloats(-1.0f,1.0f);
     std::default_random_engine generator;
@@ -52,7 +52,7 @@ SSAO::SSAO(int xResolution, int yResolution)
     
     glGenTextures(1, &occlusionBufferID_);
     glBindTexture(GL_TEXTURE_2D, occlusionBufferID_);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R16F, width, height);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, width_, height_);
     
     GLuint originalFrameBufferID;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&originalFrameBufferID));
@@ -69,7 +69,6 @@ SSAO::SSAO(int xResolution, int yResolution)
     auto vertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Screen.vert.glsl"), GL_VERTEX_SHADER);
     auto fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/SSAO.frag.glsl"), GL_FRAGMENT_SHADER);
     occlusionShader_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
-    glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
     
     glUseProgram(occlusionShader_);
@@ -87,10 +86,25 @@ SSAO::SSAO(int xResolution, int yResolution)
     glUniformBlockBinding(occlusionShader_, glGetUniformBlockIndex(occlusionShader_, "SSAOBuffer"), 3);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(SSAOUniformBuffer), nullptr, GL_DYNAMIC_DRAW);
     
-    Float4 settings(width/4, height/4, 1.0f, 1.0f);
+    Float4 settings(width_/4, height_/4, 1.0f, 1.0f);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Float4), &settings);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Float4), ssaoKernel.size() * sizeof(Float4), ssaoKernel.data());
     
+    fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/SSAOBlur.frag.glsl"), GL_FRAGMENT_SHADER);
+    blurShader_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
+    glDeleteShader(vertexShaderID);
+    glDeleteShader(fragmentShaderID);
+    glUseProgram(blurShader_);
+    glUniform1i(glGetUniformLocation(blurShader_, "occlusionBuffer"), 0);
+    
+    glGenTextures(1, &resultOcclusionBufferID_);
+    glBindTexture(GL_TEXTURE_2D, resultOcclusionBufferID_);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, xResolution, yResolution);
+    glGenFramebuffers(1, &resultFrameBufferID_);
+    glBindFramebuffer(GL_FRAMEBUFFER, resultFrameBufferID_);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resultOcclusionBufferID_, 0);
+    glDrawBuffers(1, frameBuffers);
+    glBindFramebuffer(GL_FRAMEBUFFER, originalFrameBufferID);
 }
 SSAO::~SSAO()
 {
@@ -102,9 +116,10 @@ SSAO::~SSAO()
 void SSAO::CalculateOcclusion(Texture2DSampler &texture2DSampler, GLuint quadVertexArrayID, GLuint normalBufferID, GLuint depthBufferID)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID_);
+    glViewport(0, 0, width_, height_);
     glUseProgram(occlusionShader_);
     texture2DSampler.UsePointSampler(0);
-    texture2DSampler.UsePointSampler(1);
+    texture2DSampler.UseDefaultSampler(1);
     texture2DSampler.UsePointRepeatSampler(2);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, normalBufferID);
@@ -114,10 +129,23 @@ void SSAO::CalculateOcclusion(Texture2DSampler &texture2DSampler, GLuint quadVer
     glBindTexture(GL_TEXTURE_2D, noiseTextureID_);
     glBindVertexArray(quadVertexArrayID);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    glViewport(0, 0, width_ * 2, height_ * 2);
+    glBindFramebuffer(GL_FRAMEBUFFER, resultFrameBufferID_);
+    glUseProgram(blurShader_);
+    texture2DSampler.UsePointSampler(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, occlusionBufferID_);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 void SSAO::UseOcclusionBufferAsTexture(int unit)
 {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, occlusionBufferID_);
+}
+void SSAO::UseBluredOcclusionBufferAsTexture(int unit)
+{
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, resultOcclusionBufferID_);
 }
 };

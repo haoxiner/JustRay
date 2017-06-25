@@ -56,10 +56,10 @@ bool Display::Startup()
     return true;
 }
 
-void Display::UpdateEvent()
+void Display::UpdateEvent(bool waitForEvent)
 {
     SDL_Event event;
-    if (SDL_WaitEvent(&event) != 0) {
+    if (!waitForEvent || SDL_WaitEvent(&event) != 0) {
         while (SDL_PollEvent(&event) != 0) {
             ImGui_ImplSdlGL3_ProcessEvent(&event);
             if (event.type == SDL_QUIT) {

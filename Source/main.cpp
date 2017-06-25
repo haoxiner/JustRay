@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     // Main loop
     while (display.Running()) {
         performanceTimer.Tick();
-        display.UpdateEvent();
+        display.UpdateEvent(true);
         // Rendering
         glClearColor(0.1,.1,.1,1);
 //        glClear(GL_COLOR_BUFFER_BIT);

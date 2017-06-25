@@ -58,7 +58,7 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     SetupConstantBuffers();
     SetupPreIntegratedData();
     SetupGBuffer();
-    ssao_.reset(new SSAO(xResolution, yResolution));
+//    ssao_.reset(new SSAO(xResolution, yResolution));
 }
 void RenderEngine::SetEnvironment(const std::string &name)
 {
@@ -133,7 +133,13 @@ void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup)
 }
 void RenderEngine::SubmitToScreen()
 {
-    ssao_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
+//    static bool odd = true;
+//    if (odd) {
+//        ssao_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
+//    }
+//    odd = true;
+    
+    glViewport(0, 0, xResolution_, yResolution_);
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferID_);
     glClear(GL_COLOR_BUFFER_BIT);
     texture2DSampler_->UseDefaultSampler(0);
@@ -149,7 +155,7 @@ void RenderEngine::SubmitToScreen()
     diffuseCubemap_->Bind(1);
     specularCubemap_->Bind(2);
     gBuffer_->UseAsTextures(3);
-    ssao_->UseOcclusionBufferAsTexture(7);
+//    ssao_->UseBluredOcclusionBufferAsTexture(7);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 void RenderEngine::SetupShader()
@@ -203,7 +209,7 @@ void RenderEngine::SetupConstantBuffers()
     bufferList_.resize(NUM_OF_BUFFER);
     glGenBuffers(static_cast<GLsizei>(bufferList_.size()), bufferList_.data());
     PerEngineBuffer staticConstantBuffer;
-    staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 1.0f, 100.0f);
+    staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 1.0f, 50.0f);
     
     PerFrameBuffer perFrameBuffer;
     perFrameBuffer.cameraPosition = Float4(0,-3,1, 1.0);

@@ -42,7 +42,7 @@ private:
     std::unique_ptr<Cubemap> diffuseCubemap_;
     std::unique_ptr<GBuffer> gBuffer_;
     std::unique_ptr<Texture2DSampler> texture2DSampler_;
-    std::unique_ptr<SSAO> ssao_;
+//    std::unique_ptr<SSAO> ssao_;
 private:
     GLuint gBufferShader_;
     GLuint pbrShader_;

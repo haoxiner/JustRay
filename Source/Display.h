@@ -6,7 +6,7 @@ namespace JustRay
 class Display {
 public:
     bool Startup();
-    void UpdateEvent();
+    void UpdateEvent(bool waitForEvent = false);
     void SwapBackBuffer();
     void RenderGUI();
     void Shutdown();

@@ -29,7 +29,7 @@ uniform sampler2D gBuffer0;
 uniform sampler2D gBuffer1;
 uniform sampler2D gBuffer2;
 uniform sampler2D depthBuffer;
-uniform sampler2D occlusionBuffer;
+//uniform sampler2D occlusionBuffer;
 
 float Saturate(float value)
 {
@@ -274,9 +274,9 @@ void main()
     float roughness = g1.x;
     float metallic = g1.y;
     
-//    baseColor = vec3(1.0);
-//    roughness = 0.0;
-//    metallic = 1.0;
+    baseColor = vec3(1.0);
+    roughness = 0.3;
+    metallic = 0.0;
 
     float alphaG = roughness * roughness;
 
@@ -289,7 +289,12 @@ void main()
 	float NdotV = Saturate(dot(N, V));
 	vec3 specular = EvaluateIBLSpecular(N, V, NdotV, alphaG, roughness, f0, f90);
 	vec3 diffuse = diffuseColor * INV_PI * EvaluateIBLDiffuse(N, V, NdotV, alphaG);
-	fragColor.xyz += (diffuse + specular) * (ComputeSpecularOcclusion(NdotV, texture(occlusionBuffer, texCoord).r, alphaG));
+    
+//    float ao = 1.0 - pow(texture(occlusionBuffer, texCoord).r, 1.0);
+//    diffuse *= ao;
+//    specular *= ComputeSpecularOcclusion(NdotV, ao, alphaG);
+    fragColor.xyz += (diffuse + specular);
+    
 
 ////////////////////// Analytic Light ///////////////////////
 	NdotV = NdotV + 1e-5; // avoid artifact
@@ -309,13 +314,15 @@ void main()
 	
 	// fragColor.xyz += vec3(10000, 10000, 10000) * (Fr + diffuseColor * Fd) / dot(pointLight, pointLight);
 //////////////////////////////////////////////////////////////////
-	
+//	fragColor.xyz = vec3(pow(ComputeSpecularOcclusion(dot(N,V), ao, roughness), 4.2));
 	float exposure = 3.5;
 	fragColor *= exposure;
 	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
 	fragColor.w = 1.0;
     
-//    fragColor.xyz = vec3(ComputeSpecularOcclusion(NdotV, texture(occlusionBuffer, texCoord).r, alphaG));
-//    fragColor.xyz = SampleCubemapForZup(specularEnvmap, reflect(-V, N), 0.0).xyz;
+//    ao = ComputeSpecularOcclusion(dot(N,V), ao, roughness);
+//    fragColor.xyz = vec3(diffuse);
+//    fragColor.xyz = vec3(ao);
+    //    fragColor.xyz = SampleCubemapForZup(specularEnvmap, reflect(-V, N), 0.0).xyz;
 }
