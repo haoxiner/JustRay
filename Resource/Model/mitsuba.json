@@ -1,11 +1,14 @@
 {
+    "model": [
+    {
 	"vertex": {
 		"offset": 0,
-		"count": 31495
+		"count": 31499
 	},
 	"index": {
         "offset": 881860,
 		"count": 183264
 	},
     "material": "car_paint"
+    }]
 }

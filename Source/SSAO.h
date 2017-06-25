@@ -25,7 +25,10 @@ private:
 private:
     GLuint noiseTextureID_;
     GLuint frameBufferID_;
-
+    
+    GLuint bluredFrameBufferID_;
+    GLuint bluredOcclusionBufferID_;
+    
     GLuint resultFrameBufferID_;
     GLuint resultOcclusionBufferID_;
     

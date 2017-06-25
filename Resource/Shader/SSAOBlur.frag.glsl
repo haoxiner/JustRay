@@ -82,17 +82,17 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords){
     , sy);
 }
 void main() {
-    vec2 texelSize = 1.0 / vec2(textureSize(occlusionBuffer, 0));
-    float result = 0.0;
-    for (int x = -2; x < 2; ++x)
-    {
-        for (int y = -2; y < 2; ++y)
-        {
-            vec2 offset = vec2(float(x), float(y)) * texelSize;
-            result += texture(occlusionBuffer, texCoord + offset).r;
-        }
-    }
-    bluredOcclusion = result / (4.0 * 4.0);
-//    bluredOcclusion = textureBicubic(occlusionBuffer, texCoord).r;
+//    vec2 texelSize = 1.0 / vec2(textureSize(occlusionBuffer, 0));
+//    float result = 0.0;
+//    for (int x = -2; x < 2; ++x) 
+//    {
+//        for (int y = -2; y < 2; ++y) 
+//        {
+//            vec2 offset = vec2(float(x) * 0.25, float(y) * 0.25) * texelSize;
+//            result += texture(occlusionBuffer, texCoord + offset).r;
+//        }
+//    }
+//    bluredOcclusion = result / (4.0 * 4.0);
+    bluredOcclusion = textureBicubic(occlusionBuffer, texCoord).r;
 //    bluredOcclusion = blur13(occlusionBuffer, texCoord, vec2(textureSize(occlusionBuffer, 0)));
 }

@@ -58,7 +58,7 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     SetupConstantBuffers();
     SetupPreIntegratedData();
     SetupGBuffer();
-//    ssao_.reset(new SSAO(xResolution, yResolution));
+    ssao_.reset(new SSAO(xResolution, yResolution));
 }
 void RenderEngine::SetEnvironment(const std::string &name)
 {
@@ -133,11 +133,11 @@ void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup)
 }
 void RenderEngine::SubmitToScreen()
 {
-//    static bool odd = true;
-//    if (odd) {
-//        ssao_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
-//    }
-//    odd = true;
+    static bool odd = true;
+    if (odd) {
+        ssao_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
+    }
+    odd = true;
     
     glViewport(0, 0, xResolution_, yResolution_);
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferID_);
@@ -147,7 +147,7 @@ void RenderEngine::SubmitToScreen()
     texture2DSampler_->UsePointSampler(4);
     texture2DSampler_->UsePointSampler(5);
     texture2DSampler_->UsePointSampler(6);
-    texture2DSampler_->UsePointSampler(7);
+    texture2DSampler_->UseDefaultSampler(7);
     glBindVertexArray(squareVertexArrayID_);
     glUseProgram(pbrShader_);
     glActiveTexture(GL_TEXTURE0);
@@ -155,7 +155,7 @@ void RenderEngine::SubmitToScreen()
     diffuseCubemap_->Bind(1);
     specularCubemap_->Bind(2);
     gBuffer_->UseAsTextures(3);
-//    ssao_->UseBluredOcclusionBufferAsTexture(7);
+    ssao_->UseBluredOcclusionBufferAsTexture(7);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 void RenderEngine::SetupShader()

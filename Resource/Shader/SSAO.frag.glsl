@@ -21,8 +21,8 @@ uniform sampler2D normalMap;
 uniform sampler2D depthBuffer;
 uniform sampler2D noiseMap;
 
-const int kernelSize = 8;
-const float bias = 1e-5;
+const int kernelSize = 16;
+const float bias = 1e-3;
 
 void main()
 {
@@ -33,7 +33,7 @@ void main()
         occlusion = 1.0;
         return;
     }
-    float radius = 1.0f;
+    float radius = 0.5f;
     
     vec2 noiseScale = vec2(settings.xy);
     
@@ -53,11 +53,13 @@ void main()
         positionSamplePS /= positionSamplePS.w;
         positionSamplePS.xyz = positionSamplePS.xyz * 0.5 + vec3(0.5);
         
-        float depthSample = texture(depthBuffer, positionSamplePS.xy).r;
+        vec4 temp = vec4(positionSamplePS.xy, texture(depthBuffer, positionSamplePS.xy).r * 2.0 - 1.0, 1.0);
+        temp = inverse(viewToProjection) * temp;
+        float depthSample = temp.z / temp.w;
         
-        float diff = abs(positionSamplePS.z - depthSample);
-        float rangeCheck = smoothstep(0.0, 1.0, radius/diff);
-        occlusion += (depthSample <= positionSamplePS.z + bias ? 1.0 : 0.0) * rangeCheck;
+        float diff = abs(positionSampleVS.z - depthSample);
+        float rangeCheck = smoothstep(0.0, 1.0, radius / diff);
+        occlusion += (depthSample <= positionSampleVS.z + bias ? 1.0 : 0.0) * rangeCheck;
     }
     occlusion = (occlusion / float(kernelSize));
 }

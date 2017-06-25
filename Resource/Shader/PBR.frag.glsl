@@ -29,7 +29,7 @@ uniform sampler2D gBuffer0;
 uniform sampler2D gBuffer1;
 uniform sampler2D gBuffer2;
 uniform sampler2D depthBuffer;
-//uniform sampler2D occlusionBuffer;
+uniform sampler2D occlusionBuffer;
 
 float Saturate(float value)
 {
@@ -275,7 +275,7 @@ void main()
     float metallic = g1.y;
     
     baseColor = vec3(1.0);
-    roughness = 0.3;
+    roughness = 1.0;
     metallic = 0.0;
 
     float alphaG = roughness * roughness;
@@ -290,9 +290,9 @@ void main()
 	vec3 specular = EvaluateIBLSpecular(N, V, NdotV, alphaG, roughness, f0, f90);
 	vec3 diffuse = diffuseColor * INV_PI * EvaluateIBLDiffuse(N, V, NdotV, alphaG);
     
-//    float ao = 1.0 - pow(texture(occlusionBuffer, texCoord).r, 1.0);
-//    diffuse *= ao;
-//    specular *= ComputeSpecularOcclusion(NdotV, ao, alphaG);
+    float ao = pow(texture(occlusionBuffer, texCoord).r, 1.0);
+    diffuse *= ao;
+    specular *= ComputeSpecularOcclusion(NdotV, ao, alphaG);
     fragColor.xyz += (diffuse + specular);
     
 
@@ -315,6 +315,7 @@ void main()
 	// fragColor.xyz += vec3(10000, 10000, 10000) * (Fr + diffuseColor * Fd) / dot(pointLight, pointLight);
 //////////////////////////////////////////////////////////////////
 //	fragColor.xyz = vec3(pow(ComputeSpecularOcclusion(dot(N,V), ao, roughness), 4.2));
+
 	float exposure = 3.5;
 	fragColor *= exposure;
 	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
@@ -322,7 +323,6 @@ void main()
 	fragColor.w = 1.0;
     
 //    ao = ComputeSpecularOcclusion(dot(N,V), ao, roughness);
-//    fragColor.xyz = vec3(diffuse);
-//    fragColor.xyz = vec3(ao);
+    fragColor.xyz = vec3(ao);
     //    fragColor.xyz = SampleCubemapForZup(specularEnvmap, reflect(-V, N), 0.0).xyz;
 }
