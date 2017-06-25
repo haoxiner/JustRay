@@ -6,5 +6,6 @@
 	"index": {
         "offset": 881860,
 		"count": 183264
-	}
+	},
+    "material": "car_paint"
 }

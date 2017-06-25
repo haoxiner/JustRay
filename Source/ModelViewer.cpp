@@ -55,5 +55,6 @@ void ModelViewer::Update(float deltaTime, const Input& input, RenderEngine& rend
     renderEngine.Prepare();
     renderEngine.Submit(*testModel_);
     renderEngine.SubmitToScreen();
+    ImGui::Text("Test GUI");
 }
 };
