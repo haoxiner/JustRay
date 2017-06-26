@@ -13,6 +13,7 @@
 #include "Cubemap.h"
 #include "Texture2DSampler.h"
 #include "SSAO.h"
+#include "AOBuffer.h"
 #include "MathUtil.h"
 #include "Platform.h"
 #include <vector>
@@ -42,7 +43,8 @@ private:
     std::unique_ptr<Cubemap> diffuseCubemap_;
     std::unique_ptr<GBuffer> gBuffer_;
     std::unique_ptr<Texture2DSampler> texture2DSampler_;
-    std::unique_ptr<SSAO> ssao_;
+    std::unique_ptr<AOBuffer> aoBuffer_;
+//    std::unique_ptr<SSAO> ssao_;
 private:
     GLuint gBufferShader_;
     GLuint pbrShader_;

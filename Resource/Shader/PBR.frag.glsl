@@ -275,7 +275,7 @@ void main()
     float metallic = g1.y;
     
     baseColor = vec3(1.0);
-    roughness = 1.0;
+    roughness = 0.5;
     metallic = 0.0;
 
     float alphaG = roughness * roughness;
@@ -292,9 +292,9 @@ void main()
     
     float ao = pow(texture(occlusionBuffer, texCoord).r, 1.0);
     diffuse *= ao;
-    specular *= ComputeSpecularOcclusion(NdotV, ao, alphaG);
+    specular *= vec3(1.0) - ComputeSpecularOcclusion(NdotV, 1.0 - ao, alphaG);
     fragColor.xyz += (diffuse + specular);
-    
+//    fragColor.xyz = diffuse;
 
 ////////////////////// Analytic Light ///////////////////////
 	NdotV = NdotV + 1e-5; // avoid artifact
@@ -314,7 +314,6 @@ void main()
 	
 	// fragColor.xyz += vec3(10000, 10000, 10000) * (Fr + diffuseColor * Fd) / dot(pointLight, pointLight);
 //////////////////////////////////////////////////////////////////
-//	fragColor.xyz = vec3(pow(ComputeSpecularOcclusion(dot(N,V), ao, roughness), 4.2));
 
 	float exposure = 3.5;
 	fragColor *= exposure;
@@ -323,6 +322,7 @@ void main()
 	fragColor.w = 1.0;
     
 //    ao = ComputeSpecularOcclusion(dot(N,V), ao, roughness);
-    fragColor.xyz = vec3(ao);
-    //    fragColor.xyz = SampleCubemapForZup(specularEnvmap, reflect(-V, N), 0.0).xyz;
+//    float ao = texture(occlusionBuffer, texCoord).r;
+//    fragColor.xyz = vec3(1.0) - vec3(ComputeSpecularOcclusion(NdotV, 1.0 - ao, 0.0));
+//    fragColor.xyz = vec3(ao);
 }

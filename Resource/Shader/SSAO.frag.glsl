@@ -21,45 +21,42 @@ uniform sampler2D normalMap;
 uniform sampler2D depthBuffer;
 uniform sampler2D noiseMap;
 
-const int kernelSize = 16;
-const float bias = 1e-3;
+const int kernelSize = 8;
+const float bias = 0.005f;
+const float radius = 0.45f;
 
 void main()
 {
     occlusion = 0.0;
-    
     float depth = texture(depthBuffer, texCoord).r;
-    if (depth > 0.99999f) {
+    if (depth > 0.999f) {
         occlusion = 1.0;
         return;
     }
-    float radius = 0.5f;
+    vec4 origin = inverse(viewToProjection) * vec4(texCoord * 2.0 - vec2(1.0), depth * 2.0 - 1.0, 1.0);
+    origin /= origin.w;
     
-    vec2 noiseScale = vec2(settings.xy);
+    vec4 normal = vec4(texture(normalMap, texCoord).xyz * 2.0 - vec3(1.0), 0.0);
+    normal = normalize(worldToView * normal);
     
-    vec4 projectedPosition = vec4(texCoord*2.0 - vec2(1.0), depth * 2.0 - 1.0, 1.0);
-    vec4 positionInCameraSpace = inverse(viewToProjection) * projectedPosition;
-    positionInCameraSpace /= positionInCameraSpace.w;
+    vec3 rvec = texture(noiseMap, texCoord * settings.xy).xyz * 2.0 - vec3(1.0);
+    vec3 tangent = normalize(rvec - normal.xyz * dot(rvec, normal.xyz));
+    vec3 bitangent = cross(normal.xyz, tangent);
+    mat3 TBN = mat3(tangent, bitangent, normal.xyz);
     
-    vec3 normal = normalize(mat3(worldToView) * (texture(normalMap, texCoord).xyz * 2.0 - vec3(1.0)));
-    vec3 randomVec = texture(noiseMap, texCoord * noiseScale).xyz;
-    vec3 tangent   = normalize(randomVec - normal * dot(randomVec, normal));
-    vec3 bitangent = cross(normal, tangent);
-    mat3 TBN       = mat3(tangent, bitangent, normal);
-    
-    for(int i = 0; i < kernelSize; i++) {
-        vec4 positionSampleVS = vec4(positionInCameraSpace.xyz + TBN * kernel[i].xyz * radius, 1.0);
-        vec4 positionSamplePS = viewToProjection * positionSampleVS;
-        positionSamplePS /= positionSamplePS.w;
-        positionSamplePS.xyz = positionSamplePS.xyz * 0.5 + vec3(0.5);
+    for (int i = 0; i < kernelSize; i++) {
+        vec3 posSample = TBN * kernel[i].xyz * radius + origin.xyz;
+        vec4 offset = vec4(posSample, 1.0);
+        offset = viewToProjection * offset;
+        offset /= offset.w;
         
-        vec4 temp = vec4(positionSamplePS.xy, texture(depthBuffer, positionSamplePS.xy).r * 2.0 - 1.0, 1.0);
-        temp = inverse(viewToProjection) * temp;
-        float depthSample = temp.z / temp.w;
+        float depthSample = texture(depthBuffer, offset.xy * 0.5 + vec2(0.5)).r;
+        offset.z = depthSample * 2.0 - 1.0;
+        offset = inverse(viewToProjection) * offset;
+        offset /= offset.w;
         
-        float diff = abs(positionSampleVS.z - depthSample);
-        float rangeCheck = smoothstep(0.0, 1.0, radius / diff);
-        occlusion += (depthSample <= positionSampleVS.z + bias ? 1.0 : 0.0) * rangeCheck;
+        float rangeCheck = abs(origin.z - offset.z) < radius ? 1.0 : 0.0;
+        occlusion += (offset.z >= posSample.z ? 1.0 : 0.0) * rangeCheck;
     }
-    occlusion = (occlusion / float(kernelSize));
+    occlusion = 1.0f - (occlusion / float(kernelSize));
 }

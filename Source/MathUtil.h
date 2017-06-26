@@ -64,6 +64,10 @@ inline Quaternion Normalize(const Quaternion& quaternion)
 {
     return Quaternion(glm::normalize(quaternion));
 }
+inline Float2 Normalize(const Float2& v)
+{
+    return glm::normalize(v);
+}
 inline Float3 Normalize(const Float3& v)
 {
     return glm::normalize(v);

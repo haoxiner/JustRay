@@ -61,11 +61,14 @@ void Display::UpdateEvent(bool waitForEvent)
     SDL_Event event;
     if (!waitForEvent || SDL_WaitEvent(&event) != 0) {
         while (SDL_PollEvent(&event) != 0) {
-            ImGui_ImplSdlGL3_ProcessEvent(&event);
             if (event.type == SDL_QUIT) {
                 running_ = false;
             }
-            input_.Update(event);
+            ImGui_ImplSdlGL3_ProcessEvent(&event);
+            ImGuiIO& io = ImGui::GetIO();
+            if (!io.WantCaptureMouse) {
+                input_.Update(event);
+            }
         }
     }
     ImGui_ImplSdlGL3_NewFrame(window_);
