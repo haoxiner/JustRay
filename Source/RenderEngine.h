@@ -12,7 +12,6 @@
 #include "Material.h"
 #include "Cubemap.h"
 #include "Texture2DSampler.h"
-#include "SSAO.h"
 #include "AOBuffer.h"
 #include "MathUtil.h"
 #include "Platform.h"
@@ -31,6 +30,7 @@ public:
     void Render(const ModelGroup& modelGroup);
     void Prepare();
     void Submit(const ModelGroup& modelGroup);
+    void Submit(const ModelGroup& modelGroup, Material& material);
 private:
     void SetupShader();
     void SetupConstantBuffers();
@@ -44,7 +44,6 @@ private:
     std::unique_ptr<GBuffer> gBuffer_;
     std::unique_ptr<Texture2DSampler> texture2DSampler_;
     std::unique_ptr<AOBuffer> aoBuffer_;
-//    std::unique_ptr<SSAO> ssao_;
 private:
     GLuint gBufferShader_;
     GLuint pbrShader_;

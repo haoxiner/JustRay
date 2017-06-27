@@ -18,6 +18,8 @@ void ModelViewer::Startup()
     testModel_->entities.emplace_back(entity_);
     modelToWorld_ = Matrix4x4(1.0f);
     cameraPosition_ = Float3(0,3,1);
+    
+    customMaterial_.reset(new Material(1.0, 1.0, 1.0, 1.0, 0.5, 1.0));
 }
 void ModelViewer::Shutdown()
 {
@@ -50,11 +52,21 @@ void ModelViewer::Update(float deltaTime, const Input& input, RenderEngine& rend
         cameraPosition_.y -= input.Pinch() * 10;
         cameraPosition_.y = std::fmaxf(1, cameraPosition_.y);
     }
+    
+    ImGui::Checkbox("Custom Material", &useCustomMaterial_);
+    if (useCustomMaterial_) {
+        ImGui::SliderFloat3("Base Color", &(customBaseColor_[0]), 0.0f, 1.0f);
+        ImGui::SliderFloat("Roughness", &customRoughness_, 0.0f, 1.0f);
+        ImGui::SliderFloat("Metallic", &customMetallic_, 0.0f, 1.0f);
+        customMaterial_->Set(false, customBaseColor_.x, customBaseColor_.y, customBaseColor_.z, customMetallic_, customRoughness_, 1.0);
+    }
     renderEngine.SetCamera(cameraPosition_, Float3(0,cameraPosition_.y - 1,cameraPosition_.z), Float3(0,0,1));
-
     renderEngine.Prepare();
-    renderEngine.Submit(*testModel_);
+    if (useCustomMaterial_) {
+        renderEngine.Submit(*testModel_, *customMaterial_);
+    } else {
+        renderEngine.Submit(*testModel_);
+    }
     renderEngine.SubmitToScreen();
-    ImGui::Text("TEXT GUI");
 }
 };

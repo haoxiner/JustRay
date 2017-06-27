@@ -17,13 +17,19 @@ public:
     ~Texture2DSampler();
     void UseDefaultSampler(int unit);
     void UseRepeatSampler(int unit);
+    void UseLinearRepeatSampler(int unit);
+    void UseLinearMirrorRepeatSampler(int unit);
     void UsePointSampler(int unit);
     void UsePointRepeatSampler(int unit);
+    void UsePointMirrorRepeatSampler(int unit);
 private:
     GLuint defaultSamplerID_;
     GLuint repeatSamplerID_;
+    GLuint linearRepeatSamplerID_;
+    GLuint linearMirrorRepeatSamplerID_;
     GLuint pointSamplerID_;
     GLuint pointRepeatSamplerID_;
+    GLuint pointMirrorRepeatSamplerID_;
 };
 }
 

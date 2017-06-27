@@ -28,6 +28,18 @@ Texture2DSampler::Texture2DSampler()
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
     glSamplerParameterf(repeatSamplerID_, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
     
+    glGenSamplers(1, &linearRepeatSamplerID_);
+    glSamplerParameteri(linearRepeatSamplerID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glSamplerParameteri(linearRepeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glSamplerParameteri(linearRepeatSamplerID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glSamplerParameteri(linearRepeatSamplerID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    
+    glGenSamplers(1, &linearMirrorRepeatSamplerID_);
+    glSamplerParameteri(linearMirrorRepeatSamplerID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glSamplerParameteri(linearMirrorRepeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glSamplerParameteri(linearMirrorRepeatSamplerID_, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glSamplerParameteri(linearMirrorRepeatSamplerID_, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    
     glGenSamplers(1, &pointSamplerID_);
     glSamplerParameteri(pointSamplerID_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glSamplerParameteri(pointSamplerID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -39,6 +51,12 @@ Texture2DSampler::Texture2DSampler()
     glSamplerParameteri(pointRepeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glSamplerParameteri(pointRepeatSamplerID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glSamplerParameteri(pointRepeatSamplerID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    
+    glGenSamplers(1, &pointMirrorRepeatSamplerID_);
+    glSamplerParameteri(pointMirrorRepeatSamplerID_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glSamplerParameteri(pointMirrorRepeatSamplerID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glSamplerParameteri(pointMirrorRepeatSamplerID_, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glSamplerParameteri(pointMirrorRepeatSamplerID_, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 }
 Texture2DSampler::~Texture2DSampler()
 {
@@ -55,6 +73,14 @@ void Texture2DSampler::UseRepeatSampler(int unit)
 {
     glBindSampler(unit, repeatSamplerID_);
 }
+void Texture2DSampler::UseLinearRepeatSampler(int unit)
+{
+    glBindSampler(unit, linearRepeatSamplerID_);
+}
+void Texture2DSampler::UseLinearMirrorRepeatSampler(int unit)
+{
+    glBindSampler(unit, linearMirrorRepeatSamplerID_);
+}
 void Texture2DSampler::UsePointSampler(int unit)
 {
     glBindSampler(unit, pointSamplerID_);
@@ -62,5 +88,9 @@ void Texture2DSampler::UsePointSampler(int unit)
 void Texture2DSampler::UsePointRepeatSampler(int unit)
 {
     glBindSampler(unit, pointRepeatSamplerID_);
+}
+void Texture2DSampler::UsePointMirrorRepeatSampler(int unit)
+{
+    glBindSampler(unit, pointMirrorRepeatSamplerID_);
 }
 };

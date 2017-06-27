@@ -269,14 +269,9 @@ void main()
     vec4 g2 = texture(gBuffer2, texCoord);
     
     vec3 baseColor = g0.xyz;
-//    vec3 N = (inverse(worldToView) * vec4(DecodeNormal(g1.xy), 0.0)).xyz;
     vec3 N = g2.xyz * 2.0 - vec3(1.0);
     float roughness = g1.x;
     float metallic = g1.y;
-    
-    baseColor = vec3(1.0);
-    roughness = 0.5;
-    metallic = 0.0;
 
     float alphaG = roughness * roughness;
 
@@ -290,11 +285,10 @@ void main()
 	vec3 specular = EvaluateIBLSpecular(N, V, NdotV, alphaG, roughness, f0, f90);
 	vec3 diffuse = diffuseColor * INV_PI * EvaluateIBLDiffuse(N, V, NdotV, alphaG);
     
-    float ao = pow(texture(occlusionBuffer, texCoord).r, 1.0);
+    float ao = pow(texture(occlusionBuffer, texCoord).r, 2.2);
     diffuse *= ao;
-    specular *= vec3(1.0) - ComputeSpecularOcclusion(NdotV, 1.0 - ao, alphaG);
+    specular *= ComputeSpecularOcclusion(NdotV, ao, alphaG);
     fragColor.xyz += (diffuse + specular);
-//    fragColor.xyz = diffuse;
 
 ////////////////////// Analytic Light ///////////////////////
 	NdotV = NdotV + 1e-5; // avoid artifact
@@ -320,9 +314,4 @@ void main()
 	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
 	fragColor.w = 1.0;
-    
-//    ao = ComputeSpecularOcclusion(dot(N,V), ao, roughness);
-//    float ao = texture(occlusionBuffer, texCoord).r;
-//    fragColor.xyz = vec3(1.0) - vec3(ComputeSpecularOcclusion(NdotV, 1.0 - ao, 0.0));
-//    fragColor.xyz = vec3(ao);
 }

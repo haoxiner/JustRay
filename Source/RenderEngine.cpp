@@ -58,7 +58,6 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     SetupConstantBuffers();
     SetupPreIntegratedData();
     SetupGBuffer();
-//    ssao_.reset(new SSAO(xResolution, yResolution));
     aoBuffer_.reset(new AOBuffer(xResolution, yResolution));
 }
 void RenderEngine::SetEnvironment(const std::string &name)
@@ -117,9 +116,9 @@ void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup)
 {
     glBindVertexArray(modelGroup.vertexArrayID_);
     PerObjectBuffer perObjectBuffer;
+    glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
     for (auto&& entity : modelGroup.entities) {
         perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
-        glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
         for (const auto& model : modelGroup.models_) {
             int indexOffset = std::get<0>(model);
             int numOfIndex = std::get<1>(model);
@@ -132,14 +131,31 @@ void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup)
         }
     }
 }
+void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup, JustRay::Material& material)
+{
+    glBindVertexArray(modelGroup.vertexArrayID_);
+    material.Use(0);
+    PerObjectBuffer perObjectBuffer;
+    perObjectBuffer.material[0] = material.custom[0];
+    perObjectBuffer.material[1] = material.custom[1];
+    glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
+    for (auto&& entity : modelGroup.entities) {
+        perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
+        for (const auto& model : modelGroup.models_) {
+            int indexOffset = std::get<0>(model);
+            int numOfIndex = std::get<1>(model);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
+            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+        }
+    }
+}
 void RenderEngine::SubmitToScreen()
 {
-//    static bool odd = true;
-//    if (odd) {
-//        ssao_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
-//    }
-//    odd = true;
-    aoBuffer_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
+    static bool odd = true;
+    if (odd) {
+        aoBuffer_->CalculateOcclusion(*texture2DSampler_, squareVertexArrayID_, gBuffer_->GetNormalBufferID(), gBuffer_->GetDepthBufferID());
+    }
+    odd = !odd;
     
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferID_);
     glViewport(0, 0, xResolution_, yResolution_);
@@ -150,7 +166,7 @@ void RenderEngine::SubmitToScreen()
     texture2DSampler_->UsePointSampler(4);
     texture2DSampler_->UsePointSampler(5);
     texture2DSampler_->UsePointSampler(6);
-    texture2DSampler_->UsePointSampler(7);
+    texture2DSampler_->UseLinearMirrorRepeatSampler(7);
     glBindVertexArray(squareVertexArrayID_);
     glUseProgram(pbrShader_);
     glActiveTexture(GL_TEXTURE0);
@@ -158,7 +174,6 @@ void RenderEngine::SubmitToScreen()
     diffuseCubemap_->Bind(1);
     specularCubemap_->Bind(2);
     gBuffer_->UseAsTextures(3);
-//    ssao_->UseBluredOcclusionBufferAsTexture(7);
     aoBuffer_->UseOcclusionBufferAsTexture(7);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }

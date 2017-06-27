@@ -25,15 +25,25 @@ public:
     void Shutdown() override;
     void Update(float deltaTime, const Input& input, RenderEngine& renderEngine) override;
 private:
+    // control entity rotation
     bool rotating_ = false;
     Float3 v0;
     Float3 cameraPosition_;
     Matrix4x4 initRotation_;
-    float squareV1;
+    
+    // render
     Matrix4x4 modelToWorld_;
     std::shared_ptr<Entity> entity_;
     std::unique_ptr<ModelGroup> testModel_;
     std::map<const std::string, std::shared_ptr<Material>> materialMap_;
+    
+    std::unique_ptr<Material> customMaterial_;
+    
+    // control
+    bool useCustomMaterial_ = false;
+    Float3 customBaseColor_ = Float3(1.0f);
+    float customRoughness_ = 0.5f;
+    float customMetallic_ = 0.0f;
 };
 }
 

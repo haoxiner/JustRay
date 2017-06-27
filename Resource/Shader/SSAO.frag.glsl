@@ -2,7 +2,7 @@
 precision highp float;
 precision highp sampler2D;
 in vec2 texCoord;
-out float occlusion;
+out vec2 occlusionBuffer;
 layout(std140) uniform PerEngineBuffer
 {
 	mat4 viewToProjection;
@@ -21,18 +21,21 @@ uniform sampler2D normalMap;
 uniform sampler2D depthBuffer;
 uniform sampler2D noiseMap;
 
-const int kernelSize = 8;
-const float bias = 0.005f;
-const float radius = 0.45f;
+
 
 void main()
 {
-    occlusion = 0.0;
+    float occlusion = 0.0;
     float depth = texture(depthBuffer, texCoord).r;
     if (depth > 0.999f) {
         occlusion = 1.0;
+        occlusionBuffer = vec2(occlusion, depth);
         return;
     }
+    const int kernelSize = 64;
+    float bias = 0.025f;
+    float radius = 0.5f;
+    
     vec4 origin = inverse(viewToProjection) * vec4(texCoord * 2.0 - vec2(1.0), depth * 2.0 - 1.0, 1.0);
     origin /= origin.w;
     
@@ -56,7 +59,8 @@ void main()
         offset /= offset.w;
         
         float rangeCheck = abs(origin.z - offset.z) < radius ? 1.0 : 0.0;
-        occlusion += (offset.z >= posSample.z ? 1.0 : 0.0) * rangeCheck;
+        occlusion += (offset.z >= posSample.z + bias ? 1.0 : 0.0) * rangeCheck;
     }
     occlusion = 1.0f - (occlusion / float(kernelSize));
+    occlusionBuffer = vec2(occlusion, depth);
 }

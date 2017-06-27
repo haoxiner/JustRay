@@ -26,13 +26,13 @@ AOBuffer::AOBuffer(int xResolution, int yResolution)
     screenWidth_ = xResolution;
     screenHeight_ = yResolution;
     
-    occlusionWidth_ = xResolution / 1;
-    occlusionHeight_ = yResolution / 1;
+    occlusionWidth_ = xResolution / 4;
+    occlusionHeight_ = yResolution / 4;
     
     std::uniform_real_distribution<float> randomFloats(-1.0f,1.0f);
     std::default_random_engine generator;
     
-    std::vector<Float4> kernel(64);
+    std::vector<Float4> kernel(kernelSize);
     for (int i = 0; i < kernelSize; i++) {
         kernel[i].x = randomFloats(generator);
         kernel[i].y = randomFloats(generator);
@@ -81,25 +81,62 @@ AOBuffer::AOBuffer(int xResolution, int yResolution)
     // frame buffer
     glGenTextures(1, &occlusionBuffer_);
     glBindTexture(GL_TEXTURE_2D, occlusionBuffer_);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, occlusionWidth_, occlusionHeight_);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG16F, occlusionWidth_, occlusionHeight_);
     
     GLuint originalFrameBufferID;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&originalFrameBufferID));
     glGenFramebuffers(1, &occlusionFBO_);
     glBindFramebuffer(GL_FRAMEBUFFER, occlusionFBO_);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, occlusionBuffer_, 0);
-    GLenum frameBuffers[] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, frameBuffers);
+    
+    
+    // blur X
+    glGenTextures(1, &blurXBuffer_);
+    glBindTexture(GL_TEXTURE_2D, blurXBuffer_);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, occlusionWidth_, occlusionHeight_);
+    glGenFramebuffers(1, &blurXFBO_);
+    glBindFramebuffer(GL_FRAMEBUFFER, blurXFBO_);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurXBuffer_, 0);
+    // shader
+    fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/SSAOBlurX.frag.glsl"), GL_FRAGMENT_SHADER);
+    blurXShader_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
+    glDeleteShader(fragmentShaderID);
+    glUseProgram(blurXShader_);
+    glUniform1i(glGetUniformLocation(blurXShader_, "occlusionBuffer"), 0);
+    // blur Y
+    glGenTextures(1, &blurYBuffer_);
+    glBindTexture(GL_TEXTURE_2D, blurYBuffer_);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, occlusionWidth_, occlusionHeight_);
+    glGenFramebuffers(1, &blurYFBO_);
+    glBindFramebuffer(GL_FRAMEBUFFER, blurYFBO_);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurYBuffer_, 0);
+    // shader
+    fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/SSAOBlurY.frag.glsl"), GL_FRAGMENT_SHADER);
+    blurYShader_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
+    glDeleteShader(fragmentShaderID);
+    glDeleteShader(vertexShaderID);
+    glUseProgram(blurYShader_);
+    glUniform1i(glGetUniformLocation(blurYShader_, "occlusionBuffer"), 0);
     
     glBindFramebuffer(GL_FRAMEBUFFER, originalFrameBufferID);
+    
 }
 AOBuffer::~AOBuffer()
 {
     glDeleteBuffers(1, &uniformBufferID_);
+    
     glDeleteTextures(1, &occlusionBuffer_);
     glDeleteTextures(1, &noiseBuffer_);
+    glDeleteTextures(1, &blurXBuffer_);
+    glDeleteTextures(1, &blurYBuffer_);
+    
     glDeleteProgram(occlusionShader_);
+    glDeleteProgram(blurXShader_);
+    glDeleteProgram(blurYBuffer_);
+    
     glDeleteFramebuffers(1, &occlusionFBO_);
+    glDeleteFramebuffers(1, &blurXFBO_);
+    glDeleteFramebuffers(1, &blurYFBO_);
 }
 void AOBuffer::CalculateOcclusion(JustRay::Texture2DSampler &texture2DSampler, GLuint quadVertexArrayID, GLuint normalBufferID, GLuint depthBufferID)
 {
@@ -117,13 +154,26 @@ void AOBuffer::CalculateOcclusion(JustRay::Texture2DSampler &texture2DSampler, G
     glBindTexture(GL_TEXTURE_2D, noiseBuffer_);
     glBindVertexArray(quadVertexArrayID);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, blurXFBO_);
+    glViewport(0, 0, occlusionWidth_, occlusionHeight_);
+    glUseProgram(blurXShader_);
+    texture2DSampler.UsePointMirrorRepeatSampler(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, occlusionBuffer_);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, blurYFBO_);
+    glViewport(0, 0, occlusionWidth_, occlusionHeight_);
+    glUseProgram(blurYShader_);
+    texture2DSampler.UsePointMirrorRepeatSampler(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, blurXBuffer_);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 void AOBuffer::UseOcclusionBufferAsTexture(int unit)
 {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, occlusionBuffer_);
-}
-void AOBuffer::UseBluredOcclusionBufferAsTexture(int unit)
-{
+    glBindTexture(GL_TEXTURE_2D, blurYBuffer_);
 }
 };
