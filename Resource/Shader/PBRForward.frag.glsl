@@ -181,7 +181,7 @@ vec3 Uncharted2Tonemap(vec3 x) {
 }
 
 //Based on Filmic Tonemapping Operators http://filmicgames.com/archives/75
-vec3 TonemapUncharted2(vec3 color) {
+vec3 Tonemap(vec3 color) {
     float ExposureBias = 2.0;
     vec3 curr = Uncharted2Tonemap(ExposureBias * color);
 
@@ -286,6 +286,7 @@ void main()
 	fragColor.xyz += (diffuse + specular);
 
 ////////////////////// Analytic Light ///////////////////////
+/*
 	NdotV = NdotV + 1e-5; // avoid artifact
 	vec3 pointLight = vec3(100.0,100.0,100.0) - position;
 	L = normalize(pointLight);
@@ -300,13 +301,13 @@ void main()
 	vec3 Fr = D * F * Vis / PI;
 	// Diffuse BRDF
 	float Fd = Fr_DisneyDiffuse(NdotV , NdotL , LdotH , roughness) / PI;
-	
+*/
 	// fragColor.xyz += vec3(10000, 10000, 10000) * (Fr + diffuseColor * Fd) / dot(pointLight, pointLight);
 //////////////////////////////////////////////////////////////////
 	
 	float exposure = 1.0;
 	fragColor *= exposure;
-	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
+	fragColor.xyz = Tonemap(fragColor.xyz);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
 	fragColor.w = 1.0;
     

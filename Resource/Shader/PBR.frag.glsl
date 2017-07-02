@@ -17,6 +17,7 @@ layout(std140) uniform PerEngineBuffer
 };
 layout(std140) uniform PerFrameBuffer
 {
+    vec4 perFrameData;
 	vec4 cameraPosition;
 	mat4 worldToView;
 };
@@ -285,7 +286,7 @@ void main()
 	vec3 specular = EvaluateIBLSpecular(N, V, NdotV, alphaG, roughness, f0, f90);
 	vec3 diffuse = diffuseColor * INV_PI * EvaluateIBLDiffuse(N, V, NdotV, alphaG);
     
-    float ao = pow(texture(occlusionBuffer, texCoord).r, 2.2);
+    float ao = pow(texture(occlusionBuffer, texCoord).r, perFrameData[0]);
     diffuse *= ao;
     specular *= ComputeSpecularOcclusion(NdotV, ao, alphaG);
     fragColor.xyz += (diffuse + specular);
@@ -309,9 +310,11 @@ void main()
 	// fragColor.xyz += vec3(10000, 10000, 10000) * (Fr + diffuseColor * Fd) / dot(pointLight, pointLight);
 //////////////////////////////////////////////////////////////////
 
-	float exposure = 3.5;
+	float exposure = perFrameData[1];
 	fragColor *= exposure;
 	fragColor.xyz = TonemapUncharted2(fragColor.xyz);
     fragColor.xyz = ApproximationLinearToSRGB(fragColor.xyz);
 	fragColor.w = 1.0;
+    
+//    fragColor.xyz = vec3(ao);
 }

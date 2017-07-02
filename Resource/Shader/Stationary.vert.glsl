@@ -16,6 +16,7 @@ layout(std140) uniform PerEngineBuffer
 };
 layout(std140) uniform PerFrameBuffer
 {
+    vec4 perFrameData;
 	vec4 cameraPosition;
 	mat4 worldToView;
 };

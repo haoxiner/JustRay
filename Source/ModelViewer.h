@@ -40,10 +40,26 @@ private:
     std::unique_ptr<Material> customMaterial_;
     
     // control
+    bool showController_ = false;
+    int controllerType_ = 0;
+    // view control
+    float aoScale_ = 1.0f;
+    float exposure_ = 1.0f;
+    
     bool useCustomMaterial_ = false;
     Float3 customBaseColor_ = Float3(1.0f);
     float customRoughness_ = 0.5f;
     float customMetallic_ = 0.0f;
+    
+    int currentModelIndex_ = 0;
+    const char* modelList[3] = {"mitsuba", "XM2010", "dp2"};
+    
+    int currentMaterialIndex_ = 0;
+    const char* materialList[4] = {"Model", "brushed_metal", "car_paint", "bronze_copper"};
+    std::unique_ptr<Material> uniformMaterial_;
+    
+    int currentEnvironmentIndex_ = 0;
+    const char* environmentList[1] = {"uffizi"};
 };
 }
 

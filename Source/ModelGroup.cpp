@@ -22,36 +22,42 @@ ModelGroup::ModelGroup(const std::string& name, std::map<const std::string, std:
     Json::JsonObject json;
     Json::Parser parser(&json, ResourceLoader::LoadFileAsString("Model/" + name + ".json"));
     if (!parser.HasError()) {
+        auto numOfVertex = json.GetValue("num_of_vertex").AsInt();
+        auto numOfIndex = json.GetValue("num_of_index").AsInt();
+    
         auto modelArrayObject = json.GetValue("model");
         auto modelArray = modelArrayObject.AsJsonArray();
         int modelArraySize = modelArrayObject.GetType();
         std::ifstream file(GetFilePath("Model/" + name + ".mg"), std::ios::binary);
+        
+        std::vector<Vertex> vertices(numOfVertex);
+        std::vector<unsigned int> indices(numOfIndex);
+        int sizeOfVertexData = numOfVertex * sizeof(Vertex);
+        file.read(reinterpret_cast<char*>(vertices.data()), sizeOfVertexData);
+        std::cerr << sizeOfVertexData << std::endl;
+        int sizeOfIndexData = numOfIndex * sizeof(unsigned int);
+        file.read(reinterpret_cast<char*>(indices.data()), sizeOfIndexData);
+        Load(vertices.data(), sizeOfVertexData,
+            {{3, GL_FLOAT, false, 3 * sizeof(float)},
+            {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
+            {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
+            {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
+            {2, GL_HALF_FLOAT, false, sizeof(half) * 2}},
+            indices.data(), sizeOfIndexData);
         for (int i = 0; i < modelArraySize; i++) {
             auto modelInfo = modelArray[i].AsJsonObject();
-            auto vertexInfo = modelInfo->GetValue("vertex").AsJsonObject();
-            int vertexCount = vertexInfo->GetValue("count").AsInt();
-            auto indexInfo = modelInfo->GetValue("index").AsJsonObject();
-            int indexCount = indexInfo->GetValue("count").AsInt();
+            int indexOffset = modelInfo->GetValue("index_offset").AsInt();
+            int indexCount = modelInfo->GetValue("index_count").AsInt();
             auto materialName = modelInfo->GetValue("material").AsString();
-            std::vector<Vertex> vertices(vertexCount);
-            std::vector<unsigned int> indices(indexCount);
-            int sizeOfVertexData = vertexCount * sizeof(Vertex);
-            file.read(reinterpret_cast<char*>(vertices.data()), sizeOfVertexData);
-            std::cerr << sizeOfVertexData << std::endl;
-            int sizeOfIndexData = indexCount * sizeof(unsigned int);
-            file.read(reinterpret_cast<char*>(indices.data()), sizeOfIndexData);
-            Load(vertices.data(), sizeOfVertexData,
-                {{3, GL_FLOAT, false, 3 * sizeof(float)},
-                {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
-                {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
-                {4, GL_INT_2_10_10_10_REV, true, sizeof(Int_2_10_10_10)},
-                {2, GL_HALF_FLOAT, false, sizeof(half) * 2}},
-                indices.data(), sizeOfIndexData);
+            float uvScale = modelInfo->GetValue("uv_scale").AsFloat();
             auto iter = materialMap.find(materialName);
-            if (iter == materialMap.end()) {
-                iter = materialMap.insert(std::make_pair(materialName, std::make_shared<Material>(materialName, 4.0))).first;
+            if (iter != materialMap.end()) {
+                models_.emplace_back(indexOffset, indexCount, iter->second);
+            } else {
+                materialMap[materialName] = std::make_shared<Material>(materialName, uvScale);
+                models_.emplace_back(indexOffset, indexCount, materialMap[materialName]);
             }
-            models_.emplace_back(0, indexCount, iter->second);
+            
         }
     } else {
         std::cerr << parser.GetErrorMessage() << std::endl;

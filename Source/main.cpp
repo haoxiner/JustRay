@@ -30,15 +30,13 @@ int main(int argc, char *argv[])
     std::cerr << "START" << std::endl;
     auto input = display.GetInput();
     JustRay::PerformanceTimer performanceTimer;
+    
     performanceTimer.Reset();
     // Main loop
     while (display.Running()) {
         performanceTimer.Tick();
         display.UpdateEvent(true);
         // Rendering
-        glClearColor(0.1,.1,.1,1);
-//        glClear(GL_COLOR_BUFFER_BIT);
-//        glClear(GL_DEPTH_BUFFER_BIT);
         app->Update(performanceTimer.GetDeltaTime(), *input, renderEngine);
         display.RenderGUI();
         display.SwapBackBuffer();

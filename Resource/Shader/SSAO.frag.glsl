@@ -9,6 +9,7 @@ layout(std140) uniform PerEngineBuffer
 };
 layout(std140) uniform PerFrameBuffer
 {
+    vec4 perFrameData;
 	vec4 cameraPosition;
 	mat4 worldToView;
 };
@@ -21,8 +22,6 @@ uniform sampler2D normalMap;
 uniform sampler2D depthBuffer;
 uniform sampler2D noiseMap;
 
-
-
 void main()
 {
     float occlusion = 0.0;
@@ -32,9 +31,9 @@ void main()
         occlusionBuffer = vec2(occlusion, depth);
         return;
     }
-    const int kernelSize = 64;
-    float bias = 0.025f;
-    float radius = 0.5f;
+    const int kernelSize = 8;
+    float bias = 0.02f;
+    float radius = 0.4f;
     
     vec4 origin = inverse(viewToProjection) * vec4(texCoord * 2.0 - vec2(1.0), depth * 2.0 - 1.0, 1.0);
     origin /= origin.w;

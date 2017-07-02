@@ -1,14 +1,11 @@
 {
+    "num_of_vertex": 31499,
+	"num_of_index": 183264,
     "model": [
     {
-	"vertex": {
-		"offset": 0,
-		"count": 31499
-	},
-	"index": {
-        "offset": 881860,
-		"count": 183264
-	},
-    "material": "car_paint"
+	"index_offset": 0,
+    "index_count": 183264,
+    "material": "brushed_metal",
+    "uv_scale": 4.0
     }]
 }

@@ -26,8 +26,8 @@ AOBuffer::AOBuffer(int xResolution, int yResolution)
     screenWidth_ = xResolution;
     screenHeight_ = yResolution;
     
-    occlusionWidth_ = xResolution / 4;
-    occlusionHeight_ = yResolution / 4;
+    occlusionWidth_ = xResolution / 2;
+    occlusionHeight_ = yResolution / 2;
     
     std::uniform_real_distribution<float> randomFloats(-1.0f,1.0f);
     std::default_random_engine generator;

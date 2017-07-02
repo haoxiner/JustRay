@@ -18,20 +18,6 @@
 
 namespace JustRay
 {
-struct PerObjectBuffer
-{
-    Matrix4x4 modelToWorld;
-    Float4 material[2];
-};
-struct PerFrameBuffer
-{
-    Float4 cameraPosition;
-    Matrix4x4 worldToView;
-};
-struct PerEngineBuffer
-{
-    Matrix4x4 viewToProjection;
-};
 enum ConstantBufferType
 {
     PER_ENGINE_BUFFER = 0,
@@ -67,11 +53,12 @@ void RenderEngine::SetEnvironment(const std::string &name)
 }
 void RenderEngine::SetCamera(const Float3 &position, const Float3 &focus, const Float3 &up)
 {
-    PerFrameBuffer perFrameBuffer;
-    perFrameBuffer.cameraPosition = Float4(position, 1.0);
-    perFrameBuffer.worldToView = glm::lookAtRH(position, focus, up);
-    glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perFrameBuffer), &perFrameBuffer);
+    perFrameBuffer_.cameraPosition = Float4(position, 1.0);
+    perFrameBuffer_.worldToView = glm::lookAtRH(position, focus, up);
+}
+void RenderEngine::SetEffect(float ao, float exposure)
+{
+    perFrameBuffer_.perFrameData = Float4(ao,exposure,1.0,1.0);
 }
 void RenderEngine::Render(const ModelGroup& modelGroup)
 {
@@ -88,23 +75,25 @@ void RenderEngine::Render(const ModelGroup& modelGroup)
     glBindVertexArray(modelGroup.vertexArrayID_);
     
     for (auto&& entity : modelGroup.entities) {
-        PerObjectBuffer perObjectBuffer;
-        perObjectBuffer.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
+        perObjectBuffer_.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
         glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
         for (const auto& model : modelGroup.models_) {
             int indexOffset = std::get<0>(model);
             int numOfIndex = std::get<1>(model);
             auto& material = std::get<2>(model);
             material->Use(3);
-            perObjectBuffer.material[0] = material->custom[0];
-            perObjectBuffer.material[1] = material->custom[1];
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
-            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+            perObjectBuffer_.material[0] = material->custom[0];
+            perObjectBuffer_.material[1] = material->custom[1];
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer_), &perObjectBuffer_);
+            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset * sizeof(unsigned int)));
         }
     }
 }
 void RenderEngine::Prepare()
 {
+    glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perFrameBuffer_), &perFrameBuffer_);
+
     gBuffer_->UseAsRenderTarget();
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -127,7 +116,7 @@ void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup)
             perObjectBuffer.material[0] = material->custom[0];
             perObjectBuffer.material[1] = material->custom[1];
             glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
-            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset * sizeof(unsigned int)));
         }
     }
 }
@@ -145,7 +134,7 @@ void RenderEngine::Submit(const JustRay::ModelGroup& modelGroup, JustRay::Materi
             int indexOffset = std::get<0>(model);
             int numOfIndex = std::get<1>(model);
             glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer), &perObjectBuffer);
-            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset));
+            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset * sizeof(unsigned int)));
         }
     }
 }
@@ -209,41 +198,40 @@ void RenderEngine::SetupShader()
     
     glUseProgram(0);
     
-    auto vertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Stationary.vert.glsl"), GL_VERTEX_SHADER);
-    auto fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/PBRForward.frag.glsl"), GL_FRAGMENT_SHADER);
-    pbrShaderForStationaryEntity_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
-    glDeleteShader(vertexShaderID);
-    glDeleteShader(fragmentShaderID);
-    
-    glUseProgram(pbrShaderForStationaryEntity_);
-    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "dfgMap"), 0);
-    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "diffuseEnvmap"), 1);
-    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "specularEnvmap"), 2);
-    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "baseColorMap"), 3);
-    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "roughnessMap"), 4);
+//    auto vertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Stationary.vert.glsl"), GL_VERTEX_SHADER);
+//    auto fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/PBRForward.frag.glsl"), GL_FRAGMENT_SHADER);
+//    pbrShaderForStationaryEntity_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
+//    glDeleteShader(vertexShaderID);
+//    glDeleteShader(fragmentShaderID);
+//    
+//    glUseProgram(pbrShaderForStationaryEntity_);
+//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "dfgMap"), 0);
+//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "diffuseEnvmap"), 1);
+//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "specularEnvmap"), 2);
+//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "baseColorMap"), 3);
+//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "roughnessMap"), 4);
 }
 void RenderEngine::SetupConstantBuffers()
 {
     // GPU Resource
     bufferList_.resize(NUM_OF_BUFFER);
     glGenBuffers(static_cast<GLsizei>(bufferList_.size()), bufferList_.data());
-    PerEngineBuffer staticConstantBuffer;
-    staticConstantBuffer.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 1.0f, 50.0f);
+    perEngineBuffer_.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 0.1f, 10.0f);
     
-    PerFrameBuffer perFrameBuffer;
-    perFrameBuffer.cameraPosition = Float4(0,-3,1, 1.0);
-    perFrameBuffer.worldToView = glm::lookAtRH(Float3(0,-3,1), Float3(0,0,1), Float3(0,0,1));
-    PerObjectBuffer perObjectBuffer;
-    perObjectBuffer.modelToWorld = Matrix4x4(1.0);
-    perObjectBuffer.material[0] = Float4(1.0,1.0,1.0,1.0);
-    perObjectBuffer.material[1] = Float4(1.0);
+    perFrameBuffer_.perFrameData = Float4(1.0, 1.0, 0.0, 0.0);
+    perFrameBuffer_.cameraPosition = Float4(0,3,0, 1.0);
+    perFrameBuffer_.worldToView = glm::lookAtRH(Float3(0,-3,1), Float3(0,0,1), Float3(0,0,1));
+    
+    perObjectBuffer_.modelToWorld = Matrix4x4(1.0);
+    perObjectBuffer_.material[0] = Float4(1.0,1.0,1.0,1.0);
+    perObjectBuffer_.material[1] = Float4(1.0);
     
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_ENGINE_BUFFER]);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerEngineBuffer), &staticConstantBuffer, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(perEngineBuffer_), &perEngineBuffer_, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerFrameBuffer), &perFrameBuffer, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerFrameBuffer), &perFrameBuffer_, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectBuffer), &perObjectBuffer, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectBuffer), &perObjectBuffer_, GL_DYNAMIC_DRAW);
     
     for (int i = 0; i < bufferList_.size(); i++) {
         glBindBufferBase(GL_UNIFORM_BUFFER, i, bufferList_[i]);

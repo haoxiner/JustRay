@@ -26,11 +26,30 @@ public:
     void Startup(int xResolution, int yResolution);
     void SetEnvironment(const std::string& name);
     void SetCamera(const Float3& position, const Float3& focus, const Float3& up);
+    void SetEffect(float ao, float exposure);
     void SubmitToScreen();
     void Render(const ModelGroup& modelGroup);
     void Prepare();
     void Submit(const ModelGroup& modelGroup);
     void Submit(const ModelGroup& modelGroup, Material& material);
+    int GetXResolution() {return xResolution_;}
+    int GetYResolution() {return yResolution_;}
+private:
+    struct PerObjectBuffer
+    {
+        Matrix4x4 modelToWorld;
+        Float4 material[2];
+    }perObjectBuffer_;
+    struct PerFrameBuffer
+    {
+        Float4 perFrameData;
+        Float4 cameraPosition;
+        Matrix4x4 worldToView;
+    }perFrameBuffer_;
+    struct PerEngineBuffer
+    {
+        Matrix4x4 viewToProjection;
+    }perEngineBuffer_;
 private:
     void SetupShader();
     void SetupConstantBuffers();

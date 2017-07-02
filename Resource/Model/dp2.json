@@ -1,0 +1,23 @@
+{
+    "num_of_vertex": 10549,
+	"num_of_index": 36249,
+    "model": [
+    {
+	"index_offset": 0,
+    "index_count": 156,
+    "material": "dp2_normer",
+    "uv_scale": 1.0
+    },
+    {
+	"index_offset": 156,
+    "index_count": 246,
+    "material": "dp2_glass",
+    "uv_scale": 1.0
+    },
+    {
+	"index_offset": 402,
+    "index_count": 35847,
+    "material": "dp2_hull",
+    "uv_scale": 1.0
+    }]
+}

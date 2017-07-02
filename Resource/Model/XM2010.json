@@ -1,0 +1,11 @@
+{
+    "num_of_vertex": 20941,
+	"num_of_index": 78168,
+    "model": [
+    {
+    "index_offset": 0,
+    "index_count": 78168,
+    "material": "xm2010_camouflage",
+    "uv_scale": 1.0
+    }]
+}
