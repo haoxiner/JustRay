@@ -12,6 +12,7 @@
 		221770DC1EF8064500CB1661 /* Cubemap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 221770DA1EF8064500CB1661 /* Cubemap.cpp */; };
 		221770E41EF80B2000CB1661 /* half.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 221770DF1EF80B2000CB1661 /* half.cpp */; };
 		221770E81EF80D7A00CB1661 /* Environment in Resources */ = {isa = PBXBuildFile; fileRef = 221770E71EF80D7A00CB1661 /* Environment */; };
+		2223C9C11F0A5AD200B3767C /* SkyBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2223C9BF1F0A5AD200B3767C /* SkyBox.cpp */; };
 		223EA8AD1EF612840077DB54 /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = 223EA8AC1EF612840077DB54 /* Shader */; };
 		223EA8AF1EF61BA80077DB54 /* AppleSystemTools.mm in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8AE1EF61BA80077DB54 /* AppleSystemTools.mm */; };
 		223EA8B31EF6225C0077DB54 /* PerformanceTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 223EA8B11EF6225C0077DB54 /* PerformanceTimer.cpp */; };
@@ -86,6 +87,8 @@
 		221770E31EF80B2000CB1661 /* halfLimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = halfLimits.h; path = Source/halfLimits.h; sourceTree = "<group>"; };
 		221770E51EF80B4C00CB1661 /* toFloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = toFloat.h; path = Source/toFloat.h; sourceTree = "<group>"; };
 		221770E71EF80D7A00CB1661 /* Environment */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Environment; path = Resource/Environment; sourceTree = "<group>"; };
+		2223C9BF1F0A5AD200B3767C /* SkyBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkyBox.cpp; path = Source/SkyBox.cpp; sourceTree = "<group>"; };
+		2223C9C01F0A5AD200B3767C /* SkyBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkyBox.h; path = Source/SkyBox.h; sourceTree = "<group>"; };
 		223EA8AC1EF612840077DB54 /* Shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shader; path = Resource/Shader; sourceTree = "<group>"; };
 		223EA8AE1EF61BA80077DB54 /* AppleSystemTools.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppleSystemTools.mm; path = Source/AppleSystemTools.mm; sourceTree = "<group>"; };
 		223EA8B01EF61C0E0077DB54 /* AppleSystemTools.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppleSystemTools.h; path = Source/AppleSystemTools.h; sourceTree = "<group>"; };
@@ -321,6 +324,8 @@
 				22529AA31EF5818600FDC476 /* RenderEngine.h */,
 				22529AA41EF5818600FDC476 /* ShaderProgram.cpp */,
 				22529AA51EF5818600FDC476 /* ShaderProgram.h */,
+				2223C9BF1F0A5AD200B3767C /* SkyBox.cpp */,
+				2223C9C01F0A5AD200B3767C /* SkyBox.h */,
 				22529AA61EF5818600FDC476 /* Vertex.cpp */,
 				22529AA71EF5818600FDC476 /* Vertex.h */,
 				226433C41EF55AF00076EBC0 /* Platform */,
@@ -522,6 +527,7 @@
 				22C7C7411EF4E1E4009DA6B2 /* imgui_draw.cpp in Sources */,
 				223EA8BE1EF643D70077DB54 /* Material.cpp in Sources */,
 				22C7C7421EF4E1E4009DA6B2 /* imgui.cpp in Sources */,
+				2223C9C11F0A5AD200B3767C /* SkyBox.cpp in Sources */,
 				229848C51EFE0A0400039895 /* GBuffer.cpp in Sources */,
 				22C7C7401EF4E1E4009DA6B2 /* imgui_demo.cpp in Sources */,
 				22529AAF1EF5818600FDC476 /* RenderEngine.cpp in Sources */,

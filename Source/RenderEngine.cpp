@@ -32,7 +32,7 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     xResolution_ = xResolution;
     yResolution_ = yResolution;
 
-    glEnable(GL_DEPTH_TEST);
+    
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -45,6 +45,7 @@ void RenderEngine::Startup(int xResolution, int yResolution)
     SetupPreIntegratedData();
     SetupGBuffer();
     aoBuffer_.reset(new AOBuffer(xResolution, yResolution));
+    skyBox_.reset(new SkyBox);
 }
 void RenderEngine::SetEnvironment(const std::string &name)
 {
@@ -60,37 +61,9 @@ void RenderEngine::SetEffect(float ao, float exposure)
 {
     perFrameBuffer_.perFrameData = Float4(ao,exposure,1.0,1.0);
 }
-void RenderEngine::Render(const ModelGroup& modelGroup)
-{
-    texture2DSampler_->UseDefaultSampler(0);
-    texture2DSampler_->UseRepeatSampler(3);
-    texture2DSampler_->UseRepeatSampler(4);
-    texture2DSampler_->UseRepeatSampler(5);
-    
-    glUseProgram(pbrShaderForStationaryEntity_);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, dfgTextureID_);
-    diffuseCubemap_->Bind(1);
-    specularCubemap_->Bind(2);
-    glBindVertexArray(modelGroup.vertexArrayID_);
-    
-    for (auto&& entity : modelGroup.entities) {
-        perObjectBuffer_.modelToWorld = QuaternionToMatrix(Normalize(entity->rotation_));
-        glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_OBJECT_BUFFER]);
-        for (const auto& model : modelGroup.models_) {
-            int indexOffset = std::get<0>(model);
-            int numOfIndex = std::get<1>(model);
-            auto& material = std::get<2>(model);
-            material->Use(3);
-            perObjectBuffer_.material[0] = material->custom[0];
-            perObjectBuffer_.material[1] = material->custom[1];
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perObjectBuffer_), &perObjectBuffer_);
-            glDrawElements(GL_TRIANGLES, numOfIndex, modelGroup.indexType_, reinterpret_cast<GLvoid*>(indexOffset * sizeof(unsigned int)));
-        }
-    }
-}
 void RenderEngine::Prepare()
 {
+    glEnable(GL_DEPTH_TEST);
     glBindBuffer(GL_UNIFORM_BUFFER, bufferList_[PER_FRAME_BUFFER]);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(perFrameBuffer_), &perFrameBuffer_);
 
@@ -148,8 +121,14 @@ void RenderEngine::SubmitToScreen()
     
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferID_);
     glViewport(0, 0, xResolution_, yResolution_);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+//    glClearColor(0.0, 0.0, 0.0, 1.0);
+//    glClear(GL_COLOR_BUFFER_BIT);
+    
+    glUseProgram(skyShader_);
+    specularCubemap_->Bind(2);
+    skyBox_->Render();
+
+    glUseProgram(pbrShader_);
     texture2DSampler_->UseDefaultSampler(0);
     texture2DSampler_->UsePointSampler(3);
     texture2DSampler_->UsePointSampler(4);
@@ -157,7 +136,6 @@ void RenderEngine::SubmitToScreen()
     texture2DSampler_->UsePointSampler(6);
     texture2DSampler_->UseLinearMirrorRepeatSampler(7);
     glBindVertexArray(squareVertexArrayID_);
-    glUseProgram(pbrShader_);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, dfgTextureID_);
     diffuseCubemap_->Bind(1);
@@ -196,27 +174,22 @@ void RenderEngine::SetupShader()
     glUniform1i(glGetUniformLocation(pbrShader_, "depthBuffer"), 6);
     glUniform1i(glGetUniformLocation(pbrShader_, "occlusionBuffer"), 7);
     
-    glUseProgram(0);
+    auto skyVertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/SkyBox.vert.glsl"), GL_VERTEX_SHADER);
+    auto skyFragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/SkyBox.frag.glsl"), GL_FRAGMENT_SHADER);
+    skyShader_ = ShaderProgram::CompileShader(skyVertexShaderID, skyFragmentShaderID);
+    glDeleteShader(skyVertexShaderID);
+    glDeleteShader(skyFragmentShaderID);
+    glUseProgram(skyShader_);
+    glUniform1i(glGetUniformLocation(skyShader_, "specularEnvmap"), 2);
     
-//    auto vertexShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/Stationary.vert.glsl"), GL_VERTEX_SHADER);
-//    auto fragmentShaderID = ShaderProgram::LoadShader(ResourceLoader::LoadFileAsString("Shader/PBRForward.frag.glsl"), GL_FRAGMENT_SHADER);
-//    pbrShaderForStationaryEntity_ = ShaderProgram::CompileShader(vertexShaderID, fragmentShaderID);
-//    glDeleteShader(vertexShaderID);
-//    glDeleteShader(fragmentShaderID);
-//    
-//    glUseProgram(pbrShaderForStationaryEntity_);
-//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "dfgMap"), 0);
-//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "diffuseEnvmap"), 1);
-//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "specularEnvmap"), 2);
-//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "baseColorMap"), 3);
-//    glUniform1i(glGetUniformLocation(pbrShaderForStationaryEntity_, "roughnessMap"), 4);
+    glUseProgram(0);
 }
 void RenderEngine::SetupConstantBuffers()
 {
     // GPU Resource
     bufferList_.resize(NUM_OF_BUFFER);
     glGenBuffers(static_cast<GLsizei>(bufferList_.size()), bufferList_.data());
-    perEngineBuffer_.viewToProjection = MakePerspectiveProjectionMatrix(45.0f, static_cast<float>(xResolution_) / yResolution_, 0.1f, 10.0f);
+    perEngineBuffer_.viewToProjection = MakePerspectiveProjectionMatrix(DegreesToRadians(90), static_cast<float>(xResolution_) / yResolution_, 0.1f, 10.0f);
     
     perFrameBuffer_.perFrameData = Float4(1.0, 1.0, 0.0, 0.0);
     perFrameBuffer_.cameraPosition = Float4(0,3,0, 1.0);
@@ -247,12 +220,12 @@ void RenderEngine::SetupConstantBuffers()
         unsigned int blockIndex = glGetUniformBlockIndex(pbrShader_, BUFFER_NAMES[i].c_str());
         glUniformBlockBinding(pbrShader_, blockIndex, i);
     }
-    
-    glUseProgram(pbrShaderForStationaryEntity_);
-    for (int i = 0; i < bufferList_.size(); i++) {
-        unsigned int blockIndex = glGetUniformBlockIndex(pbrShaderForStationaryEntity_, BUFFER_NAMES[i].c_str());
-        glUniformBlockBinding(pbrShaderForStationaryEntity_, blockIndex, i);
+    glUseProgram(skyShader_);
+    for (int i = 0; i < bufferList_.size() - 1; i++) {
+        unsigned int blockIndex = glGetUniformBlockIndex(skyShader_, BUFFER_NAMES[i].c_str());
+        glUniformBlockBinding(skyShader_, blockIndex, i);
     }
+    
     glUseProgram(0);
 }
 void RenderEngine::SetupPreIntegratedData()

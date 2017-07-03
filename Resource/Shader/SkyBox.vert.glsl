@@ -2,20 +2,17 @@
 precision highp float;
 layout(location = 0) in vec4 vertexAttribute0;
 out vec3 cubemapDirection;
-layout(binding = 0, std140) uniform StaticConstantBuffer
+layout(std140) uniform PerEngineBuffer
 {
 	mat4 viewToProjection;
 };
-layout(binding = 1, std140) uniform PerFrameConstantBuffer
+layout(std140) uniform PerFrameBuffer
 {
+    vec4 perFrameData;
 	vec4 cameraPosition;
 	mat4 worldToView;
 };
-layout(binding = 2, std140) uniform PerObjectConstantBuffer
-{
-	mat4 modelToWorld;
-	vec4 material[2];
-};
+
 mat4 rotationMatrix(vec3 axis, float angle)
 {
     axis = normalize(axis);

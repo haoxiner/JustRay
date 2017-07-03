@@ -13,6 +13,7 @@
 #include "Cubemap.h"
 #include "Texture2DSampler.h"
 #include "AOBuffer.h"
+#include "SkyBox.h"
 #include "MathUtil.h"
 #include "Platform.h"
 #include <vector>
@@ -28,7 +29,6 @@ public:
     void SetCamera(const Float3& position, const Float3& focus, const Float3& up);
     void SetEffect(float ao, float exposure);
     void SubmitToScreen();
-    void Render(const ModelGroup& modelGroup);
     void Prepare();
     void Submit(const ModelGroup& modelGroup);
     void Submit(const ModelGroup& modelGroup, Material& material);
@@ -63,10 +63,11 @@ private:
     std::unique_ptr<GBuffer> gBuffer_;
     std::unique_ptr<Texture2DSampler> texture2DSampler_;
     std::unique_ptr<AOBuffer> aoBuffer_;
+    std::unique_ptr<SkyBox> skyBox_;
 private:
     GLuint gBufferShader_;
     GLuint pbrShader_;
-    GLuint pbrShaderForStationaryEntity_;
+    GLuint skyShader_;
 private:
     GLuint squareVertexArrayID_;
     GLuint squareVertexBufferID_;
